@@ -6,6 +6,7 @@ import pprint
 import urllib
 
 from chathub_request_constructor import ChathubRequestConstructor
+from logger.logger import logger
 
 
 http_proxy = "http://localhost:11111"  # Replace with yours
@@ -39,7 +40,7 @@ def serialize_websocket_message(msg: dict) -> str:
     return json.dumps(msg, ensure_ascii=False) + "\x1e"
 
 
-class ConversationChatter:
+class ConversationConnector:
     def __init__(
         self,
         sec_access_token=None,
@@ -129,23 +130,20 @@ class ConversationChatter:
                                 delta_content_pointer = len(message_html)
 
                                 if message.get("suggestedResponses"):
-                                    print("\nSuggested Questions: ", flush=True)
+                                    logger.note("\nSuggested Questions: ")
                                     for suggestion in message.get("suggestedResponses"):
                                         suggestion_text = suggestion.get("text")
-                                        print(f"- {suggestion_text}", flush=True)
+                                        logger.mesg(f"- {suggestion_text}")
 
                             elif message_type in ["InternalSearchQuery"]:
                                 message_hidden_text = message["hiddenText"]
-                                print(
-                                    f"\n[Searching: [{message_hidden_text}]]",
-                                    flush=True,
-                                )
+                                logger.note(f"\n[Searching: [{message_hidden_text}]]")
                             elif message_type in [
                                 "InternalSearchResult",
                             ]:
-                                print("[Analyzing search results ...]", flush=True)
+                                logger.note("[Analyzing search results ...]")
                             elif message_type in ["InternalLoaderMessage"]:
-                                print("[Generating answers ...]\n", flush=True)
+                                logger.note("[Generating answers ...]\n")
                             elif message_type in ["RenderCardRequest"]:
                                 continue
                             else:
@@ -156,12 +154,12 @@ class ConversationChatter:
                 elif data.get("type") == 2:
                     if data.get("item"):
                         item = data.get("item")
-                        print("\n[Saving chat messages ...]")
+                        logger.note("\n[Saving chat messages ...]")
                         # for message in item.get("messages"):
                         #     author = message["author"]
                         #     message_text = message["text"]
                 elif data.get("type") == 3:
-                    print("[Finished]")
+                    logger.success("[Finished]")
                     await wss.close()
                     break
                 elif data.get("type") == 6:
@@ -175,7 +173,7 @@ if __name__ == "__main__":
     creator = ConversationCreator()
     creator.create()
 
-    chatter = ConversationChatter(
+    conversation_connector = ConversationConnector(
         sec_access_token=creator.response_headers[
             "x-sydney-encryptedconversationsignature"
         ],
@@ -183,8 +181,8 @@ if __name__ == "__main__":
         conversation_id=creator.response_content["conversationId"],
     )
     prompt = "Today's weather of California"
-    print(f"\n[User]: {prompt}\n")
-    print(f"[Bing]:")
+    logger.info(f"\n[User]: {prompt}\n")
+    logger.info(f"[Bing]:")
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(chatter.stream_chat(prompt=prompt))
+    loop.run_until_complete(conversation_connector.stream_chat(prompt=prompt))
     loop.close()
