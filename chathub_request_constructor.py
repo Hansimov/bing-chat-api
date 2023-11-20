@@ -26,7 +26,7 @@ class ChathubRequestConstructor:
         return "".join(random.choice("0123456789abcdef") for _ in range(length))
 
     def construct(self):
-        self.request_message = {
+        self.request_payload = {
             "arguments": [
                 {
                     "source": "cib",

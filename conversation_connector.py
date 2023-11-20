@@ -5,35 +5,12 @@ import json
 import pprint
 import urllib
 
+from conversation_creator import ConversationCreator
 from chathub_request_constructor import ChathubRequestConstructor
 from logger.logger import logger
 
 
 http_proxy = "http://localhost:11111"  # Replace with yours
-
-
-class ConversationCreator:
-    conversation_create_url = "https://www.bing.com/turing/conversation/create"
-
-    def __init__(self, cookies={}):
-        self.cookies = cookies
-        self.construct_cookies()
-
-    def construct_cookies(self):
-        self.httpx_cookies = httpx.Cookies()
-        for key, val in self.cookies.items():
-            self.httpx_cookies.set(key, val)
-
-    def create(self, proxy=None):
-        self.response = httpx.get(
-            self.conversation_create_url,
-            proxies=http_proxy if proxy is None else proxy,
-            cookies=self.httpx_cookies,
-        )
-        self.response_content = json.loads(self.response.content.decode("utf-8"))
-        self.response_headers = dict(self.response.headers)
-        pprint.pprint(self.response_content)
-        # pprint.pprint(self.response_headers)
 
 
 def serialize_websocket_message(msg: dict) -> str:
@@ -98,7 +75,7 @@ class ConversationConnector:
         chathub_request_constructor.construct()
 
         await self.wss.send_str(
-            serialize_websocket_message(chathub_request_constructor.request_message)
+            serialize_websocket_message(chathub_request_constructor.request_payload)
         )
 
         delta_content_pointer = 0
@@ -160,6 +137,7 @@ class ConversationConnector:
                         #     message_text = message["text"]
                 elif data.get("type") == 3:
                     logger.success("[Finished]")
+                    self.invocation_id += 1
                     await self.wss.close()
                     await self.aiohttp_session.close()
                     break
@@ -174,7 +152,7 @@ if __name__ == "__main__":
     creator = ConversationCreator()
     creator.create()
 
-    conversation_connector = ConversationConnector(
+    connector = ConversationConnector(
         sec_access_token=creator.response_headers[
             "x-sydney-encryptedconversationsignature"
         ],
@@ -187,5 +165,5 @@ if __name__ == "__main__":
     logger.mesg(f"{prompt}")
     logger.success(f"\n[Bing]:")
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(conversation_connector.stream_chat(prompt=prompt))
+    loop.run_until_complete(connector.stream_chat(prompt=prompt))
     loop.close()
