@@ -1,19 +1,14 @@
 import aiohttp
 import asyncio
-import certifi
 import httpx
 import json
 import pprint
-import ssl
 import urllib
 
 from chathub_request_constructor import ChathubRequestConstructor
-from cookies_constructor import CookiesConstructor
 
-ssl_context = ssl.create_default_context()
-ssl_context.load_verify_locations(certifi.where())
 
-http_proxy = "http://localhost:11111"
+http_proxy = "http://localhost:11111"  # Replace with yours
 
 
 class ConversationCreator:
@@ -81,7 +76,6 @@ class ConversationChatter:
             "Origin": "https://www.bing.com",
             "Pragma": "no-cache",
             "Sec-Websocket-Extensions": "permessage-deflate; client_max_window_bits",
-            # "Sec-Websocket-Key": "**********************==",
             "Sec-Websocket-Version": "13",
             "Upgrade": "websocket",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
@@ -89,7 +83,6 @@ class ConversationChatter:
         wss = await self.aio_session.ws_connect(
             self.ws_url,
             headers=request_headers,
-            ssl=ssl_context,
             proxy=http_proxy,
         )
 
