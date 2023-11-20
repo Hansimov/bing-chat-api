@@ -81,14 +81,18 @@ class ConversationConnector:
         delta_content_pointer = 0
         while not self.wss.closed:
             response_lines_str = await self.wss.receive_str()
+
             if isinstance(response_lines_str, str):
                 response_lines = response_lines_str.split("\x1e")
             else:
                 continue
+
             for line in response_lines:
                 if not line:
                     continue
                 data = json.loads(line)
+
+                # Stream: Meaningful Messages
                 if data.get("type") == 1:
                     arguments = data["arguments"][0]
                     if arguments.get("throttling"):
@@ -97,37 +101,37 @@ class ConversationConnector:
                     if arguments.get("messages"):
                         for message in arguments.get("messages"):
                             message_type = message.get("messageType")
+                            # Message: Displayed answer
                             if message_type is None:
-                                # Displayed message does not contain 'messageType'
-                                message_html = message["adaptiveCards"][0]["body"][0][
-                                    "text"
-                                ]
-                                delta_content = message_html[delta_content_pointer:]
+                                content = message["adaptiveCards"][0]["body"][0]["text"]
+                                delta_content = content[delta_content_pointer:]
                                 logger.mesg(delta_content, end="")
-                                delta_content_pointer = len(message_html)
-
+                                delta_content_pointer = len(content)
+                                # Message: Suggested Questions
                                 if message.get("suggestedResponses"):
                                     logger.note("\n\nSuggested Questions: ")
                                     for suggestion in message.get("suggestedResponses"):
                                         suggestion_text = suggestion.get("text")
                                         logger.file(f"- {suggestion_text}")
-
+                            # Message: Search Query
                             elif message_type in ["InternalSearchQuery"]:
                                 message_hidden_text = message["hiddenText"]
                                 logger.note(f"\n[Searching: [{message_hidden_text}]]")
-                            elif message_type in [
-                                "InternalSearchResult",
-                            ]:
+                            # Message: Internal Search Results
+                            elif message_type in ["InternalSearchResult"]:
                                 logger.note("[Analyzing search results ...]")
+                            # Message: Loader status, such as "Generating Answers"
                             elif message_type in ["InternalLoaderMessage"]:
                                 logger.note("[Generating answers ...]\n")
+                            # Message: Render Cards for Webpages
                             elif message_type in ["RenderCardRequest"]:
                                 continue
+                            # Message: Not Implemented
                             else:
                                 raise NotImplementedError(
                                     f"Not Supported Message Type: {message_type}"
                                 )
-
+                # Stream: List of whole conversation messages
                 elif data.get("type") == 2:
                     if data.get("item"):
                         item = data.get("item")
@@ -135,14 +139,17 @@ class ConversationConnector:
                         # for message in item.get("messages"):
                         #     author = message["author"]
                         #     message_text = message["text"]
+                # Stream: End of Conversation
                 elif data.get("type") == 3:
                     logger.success("[Finished]")
                     self.invocation_id += 1
                     await self.wss.close()
                     await self.aiohttp_session.close()
                     break
+                # Stream: Signal
                 elif data.get("type") == 6:
                     continue
+                # Stream: Not Monitored
                 else:
                     # pprint.pprint(data)
                     continue
