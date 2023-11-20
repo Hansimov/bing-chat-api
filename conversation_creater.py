@@ -35,7 +35,7 @@ class ConversationCreator:
         # pprint.pprint(self.response_headers)
 
 
-def serialize_websockets_message(msg: dict) -> str:
+def serialize_websocket_message(msg: dict) -> str:
     return json.dumps(msg, ensure_ascii=False) + "\x1e"
 
 
@@ -60,10 +60,10 @@ class ConversationChatter:
 
     async def _init_handshake(self, wss):
         await wss.send_str(
-            serialize_websockets_message({"protocol": "json", "version": 1})
+            serialize_websocket_message({"protocol": "json", "version": 1})
         )
         await wss.receive_str()
-        await wss.send_str(serialize_websockets_message({"type": 6}))
+        await wss.send_str(serialize_websocket_message({"type": 6}))
 
     async def stream_chat(self, prompt=""):
         self.aio_session = aiohttp.ClientSession(cookies=self.cookies)
@@ -87,17 +87,17 @@ class ConversationChatter:
         )
 
         await self._init_handshake(wss)
-        chathub_request_construtor = ChathubRequestConstructor(
+        chathub_request_constructor = ChathubRequestConstructor(
             prompt=prompt,
             conversation_style="precise",
             client_id=self.client_id,
             conversation_id=self.conversation_id,
             invocation_id=self.invocation_id,
         )
-        chathub_request_construtor.construct()
+        chathub_request_constructor.construct()
 
         await wss.send_str(
-            serialize_websockets_message(chathub_request_construtor.request_message)
+            serialize_websocket_message(chathub_request_constructor.request_message)
         )
 
         delta_content_pointer = 0
