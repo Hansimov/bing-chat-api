@@ -95,7 +95,7 @@ class ConversationChatter:
 
         await self._init_handshake(wss)
         chathub_request_construtor = ChathubRequestConstructor(
-            prompt="Hello, tell me your name. No more than 3 words.",
+            prompt=prompt,
             conversation_style="precise",
             client_id=self.client_id,
             conversation_id=self.conversation_id,
@@ -122,27 +122,57 @@ class ConversationChatter:
                     arguments = data["arguments"][0]
                     if arguments.get("throttling"):
                         throttling = arguments.get("throttling")
-                        pprint.pprint(throttling)
+                        # pprint.pprint(throttling)
                     if arguments.get("messages"):
                         for message in arguments.get("messages"):
-                            # html_str = messages["adaptiveCards"][0]["body"][0]["text"]
-                            message_text = message["text"]
-                            print(
-                                message_text[delta_content_pointer:], end="", flush=True
-                            )
-                            delta_content_pointer = len(message_text)
+                            message_type = message.get("messageType")
+                            if message_type is None:
+                                # Displayed message does not contain 'messageType'
+                                message_html = message["adaptiveCards"][0]["body"][0][
+                                    "text"
+                                ]
+                                delta_content = message_html[delta_content_pointer:]
+                                print(delta_content, end="", flush=True)
+                                delta_content_pointer = len(message_html)
+
+                                if message.get("suggestedResponses"):
+                                    print("\nSuggested Questions: ", flush=True)
+                                    for suggestion in message.get("suggestedResponses"):
+                                        suggestion_text = suggestion.get("text")
+                                        print(f"- {suggestion_text}", flush=True)
+
+                            elif message_type in ["InternalSearchQuery"]:
+                                message_hidden_text = message["hiddenText"]
+                                print(
+                                    f"\n[Searching: [{message_hidden_text}]]",
+                                    flush=True,
+                                )
+                            elif message_type in [
+                                "InternalSearchResult",
+                            ]:
+                                print("[Analyzing search results ...]", flush=True)
+                            elif message_type in ["InternalLoaderMessage"]:
+                                print("[Generating answers ...]\n", flush=True)
+                            elif message_type in ["RenderCardRequest"]:
+                                continue
+                            else:
+                                raise NotImplementedError(
+                                    f"Not Supported Message Type: {message_type}"
+                                )
 
                 elif data.get("type") == 2:
                     if data.get("item"):
                         item = data.get("item")
-                        for message in item.get("messages"):
-                            author = message["author"]
-                            message_text = message["text"]
-                            # print(f"[{author}]: {message_text}")
+                        print("\n[Saving chat messages ...]")
+                        # for message in item.get("messages"):
+                        #     author = message["author"]
+                        #     message_text = message["text"]
                 elif data.get("type") == 3:
                     print("[Finished]")
                     await wss.close()
                     break
+                elif data.get("type") == 6:
+                    continue
                 else:
                     # pprint.pprint(data)
                     continue
@@ -159,6 +189,9 @@ if __name__ == "__main__":
         client_id=creator.response_content["clientId"],
         conversation_id=creator.response_content["conversationId"],
     )
+    prompt = "Today's weather of California"
+    print(f"\n[User]: {prompt}\n")
+    print(f"[Bing]:")
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(chatter.stream_chat())
+    loop.run_until_complete(chatter.stream_chat(prompt=prompt))
     loop.close()
