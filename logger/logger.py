@@ -137,7 +137,17 @@ class Logger:
         if quiet:
             self.restore_level()
 
-    def log(self, method, msg, indent=0, fill=False, fill_side="both", *args, **kwargs):
+    def log(
+        self,
+        method,
+        msg,
+        indent=0,
+        fill=False,
+        fill_side="both",
+        end="\n",
+        *args,
+        **kwargs,
+    ):
         if type(msg) == str:
             msg_str = msg
         else:
@@ -156,6 +166,8 @@ class Logger:
         indented_msg = "\n".join([f"{indent_str}{line}" for line in msg_lines])
         if fill:
             indented_msg = add_fillers(indented_msg, fill_side=fill_side)
+        handler = self.logger.handlers[0]
+        handler.terminator = end
         getattr(self.logger, level)(colored(indented_msg, color), *args, **kwargs)
 
     def bind_functions(self):

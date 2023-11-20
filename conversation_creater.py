@@ -126,14 +126,14 @@ class ConversationConnector:
                                     "text"
                                 ]
                                 delta_content = message_html[delta_content_pointer:]
-                                print(delta_content, end="", flush=True)
+                                logger.mesg(delta_content, end="")
                                 delta_content_pointer = len(message_html)
 
                                 if message.get("suggestedResponses"):
-                                    logger.note("\nSuggested Questions: ")
+                                    logger.note("\n\nSuggested Questions: ")
                                     for suggestion in message.get("suggestedResponses"):
                                         suggestion_text = suggestion.get("text")
-                                        logger.mesg(f"- {suggestion_text}")
+                                        logger.file(f"- {suggestion_text}")
 
                             elif message_type in ["InternalSearchQuery"]:
                                 message_hidden_text = message["hiddenText"]
@@ -181,8 +181,9 @@ if __name__ == "__main__":
         conversation_id=creator.response_content["conversationId"],
     )
     prompt = "Today's weather of California"
-    logger.info(f"\n[User]: {prompt}\n")
-    logger.info(f"[Bing]:")
+    logger.success(f"\n[User]: ", end="")
+    logger.mesg(f"{prompt}")
+    logger.success(f"\n[Bing]:")
     loop = asyncio.get_event_loop()
     loop.run_until_complete(conversation_connector.stream_chat(prompt=prompt))
     loop.close()
