@@ -59,15 +59,15 @@ class ConversationConnector:
             + f"?sec_access_token={urllib.parse.quote(self.sec_access_token)}"
         )
 
-    async def _init_handshake(self, wss):
-        await wss.send_str(
+    async def _init_handshake(self):
+        await self.wss.send_str(
             serialize_websocket_message({"protocol": "json", "version": 1})
         )
-        await wss.receive_str()
-        await wss.send_str(serialize_websocket_message({"type": 6}))
+        await self.wss.receive_str()
+        await self.wss.send_str(serialize_websocket_message({"type": 6}))
 
     async def stream_chat(self, prompt=""):
-        self.aio_session = aiohttp.ClientSession(cookies=self.cookies)
+        self.aiohttp_session = aiohttp.ClientSession(cookies=self.cookies)
         request_headers = {
             "Accept-Encoding": " gzip, deflate, br",
             "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
@@ -81,13 +81,13 @@ class ConversationConnector:
             "Upgrade": "websocket",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
         }
-        wss = await self.aio_session.ws_connect(
+        self.wss = await self.aiohttp_session.ws_connect(
             self.ws_url,
             headers=request_headers,
             proxy=http_proxy,
         )
 
-        await self._init_handshake(wss)
+        await self._init_handshake()
         chathub_request_constructor = ChathubRequestConstructor(
             prompt=prompt,
             conversation_style="precise",
@@ -97,13 +97,13 @@ class ConversationConnector:
         )
         chathub_request_constructor.construct()
 
-        await wss.send_str(
+        await self.wss.send_str(
             serialize_websocket_message(chathub_request_constructor.request_message)
         )
 
         delta_content_pointer = 0
-        while not wss.closed:
-            response_lines_str = await wss.receive_str()
+        while not self.wss.closed:
+            response_lines_str = await self.wss.receive_str()
             if isinstance(response_lines_str, str):
                 response_lines = response_lines_str.split("\x1e")
             else:
@@ -160,7 +160,8 @@ class ConversationConnector:
                         #     message_text = message["text"]
                 elif data.get("type") == 3:
                     logger.success("[Finished]")
-                    await wss.close()
+                    await self.wss.close()
+                    await self.aiohttp_session.close()
                     break
                 elif data.get("type") == 6:
                     continue
@@ -181,6 +182,7 @@ if __name__ == "__main__":
         conversation_id=creator.response_content["conversationId"],
     )
     prompt = "Today's weather of California"
+    # prompt = "Tell me your name. Your output should be no more than 3 words."
     logger.success(f"\n[User]: ", end="")
     logger.mesg(f"{prompt}")
     logger.success(f"\n[Bing]:")
