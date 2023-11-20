@@ -62,9 +62,8 @@ class ConversationChatter:
             "wss://sydney.bing.com/sydney/ChatHub"
             + f"?sec_access_token={urllib.parse.quote(self.sec_access_token)}"
         )
-        # print(f"sec_access_token: {self.sec_access_token}")
 
-    async def init_handshake(self, wss):
+    async def _init_handshake(self, wss):
         await wss.send_str(
             serialize_websockets_message({"protocol": "json", "version": 1})
         )
@@ -94,8 +93,9 @@ class ConversationChatter:
             proxy=http_proxy,
         )
 
-        await self.init_handshake(wss)
+        await self._init_handshake(wss)
         chathub_request_construtor = ChathubRequestConstructor(
+            prompt="Hello, tell me your name. No more than 3 words.",
             conversation_style="precise",
             client_id=self.client_id,
             conversation_id=self.conversation_id,
@@ -106,6 +106,8 @@ class ConversationChatter:
         await wss.send_str(
             serialize_websockets_message(chathub_request_construtor.request_message)
         )
+
+        delta_content_pointer = 0
         while not wss.closed:
             response_lines_str = await wss.receive_str()
             if isinstance(response_lines_str, str):
@@ -122,16 +124,21 @@ class ConversationChatter:
                         throttling = arguments.get("throttling")
                         pprint.pprint(throttling)
                     if arguments.get("messages"):
-                        messages = arguments.get("messages")[0]
-                        html_str = messages["adaptiveCards"][0]["body"][0]["text"]
-                        # pprint.pprint(html_str)
+                        for message in arguments.get("messages"):
+                            # html_str = messages["adaptiveCards"][0]["body"][0]["text"]
+                            message_text = message["text"]
+                            print(
+                                message_text[delta_content_pointer:], end="", flush=True
+                            )
+                            delta_content_pointer = len(message_text)
+
                 elif data.get("type") == 2:
                     if data.get("item"):
                         item = data.get("item")
                         for message in item.get("messages"):
                             author = message["author"]
                             message_text = message["text"]
-                            print(f"[{author}]: {message_text}")
+                            # print(f"[{author}]: {message_text}")
                 elif data.get("type") == 3:
                     print("[Finished]")
                     await wss.close()
@@ -142,9 +149,6 @@ class ConversationChatter:
 
 
 if __name__ == "__main__":
-    # cookies_constructor = CookiesConstructor()
-    # cookies_constructor.construct()
-
     creator = ConversationCreator()
     creator.create()
 
