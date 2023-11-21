@@ -37,20 +37,23 @@ class ConversationConnectRequestHeadersConstructor:
 class ConversationConnector:
     def __init__(
         self,
+        conversation_style="pecise",
         sec_access_token=None,
         client_id=None,
         conversation_id=None,
         invocation_id=0,
         cookies={},
     ):
+        self.conversation_style = conversation_style
         self.sec_access_token = sec_access_token
+        self.quotelized_sec_access_token = urllib.parse.quote(self.sec_access_token)
         self.client_id = client_id
         self.conversation_id = conversation_id
         self.invocation_id = invocation_id
         self.cookies = cookies
         self.ws_url = (
-            "wss://sydney.bing.com/sydney/ChatHub"
-            + f"?sec_access_token={urllib.parse.quote(self.sec_access_token)}"
+            f"wss://sydney.bing.com/sydney/ChatHub"
+            f"?sec_access_token={self.quotelized_sec_access_token}"
         )
 
     async def wss_send(self, message):
@@ -75,7 +78,7 @@ class ConversationConnector:
     async def send_chathub_request(self, prompt):
         chathub_request_constructor = ChathubRequestConstructor(
             prompt=prompt,
-            conversation_style="precise",
+            conversation_style=self.conversation_style,
             client_id=self.client_id,
             conversation_id=self.conversation_id,
             invocation_id=self.invocation_id,
@@ -99,19 +102,17 @@ class ConversationConnector:
             for line in response_lines:
                 if not line:
                     continue
+
                 data = json.loads(line)
 
                 # Stream: Meaningful Messages
                 if data.get("type") == 1:
                     message_parser.parse(data)
-                # Stream: List of whole conversation messages
+                # Stream: List of all messages in the whole conversation
                 elif data.get("type") == 2:
                     if data.get("item"):
                         item = data.get("item")
                         logger.note("\n[Saving chat messages ...]")
-                        # for message in item.get("messages"):
-                        #     author = message["author"]
-                        #     message_text = message["text"]
                 # Stream: End of Conversation
                 elif data.get("type") == 3:
                     logger.success("[Finished]")
@@ -119,12 +120,11 @@ class ConversationConnector:
                     await self.wss.close()
                     await self.aiohttp_session.close()
                     break
-                # Stream: Signal
+                # Stream: Heartbeat Signal
                 elif data.get("type") == 6:
                     continue
                 # Stream: Not Monitored
                 else:
-                    # pprint.pprint(data)
                     continue
 
 
