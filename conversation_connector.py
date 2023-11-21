@@ -36,24 +36,19 @@ class ConversationConnectRequestHeadersConstructor:
 class ConversationConnector:
     def __init__(
         self,
-        conversation_style="precise",
-        sec_access_token=None,
-        client_id=None,
-        conversation_id=None,
-        invocation_id=0,
+        conversation_style: str = "precise",
+        sec_access_token: str = "",
+        client_id: str = "",
+        conversation_id: str = "",
+        invocation_id: int = 0,
         cookies={},
     ):
         self.conversation_style = conversation_style
         self.sec_access_token = sec_access_token
-        self.quotelized_sec_access_token = urllib.parse.quote(self.sec_access_token)
         self.client_id = client_id
         self.conversation_id = conversation_id
         self.invocation_id = invocation_id
         self.cookies = cookies
-        self.ws_url = (
-            f"wss://sydney.bing.com/sydney/ChatHub"
-            f"?sec_access_token={self.quotelized_sec_access_token}"
-        )
 
     async def wss_send(self, message):
         serialized_websocket_message = json.dumps(message, ensure_ascii=False) + "\x1e"
@@ -65,6 +60,11 @@ class ConversationConnector:
         await self.wss_send({"type": 6})
 
     async def init_wss_connection(self):
+        self.quotelized_sec_access_token = urllib.parse.quote(self.sec_access_token)
+        self.ws_url = (
+            f"wss://sydney.bing.com/sydney/ChatHub"
+            f"?sec_access_token={self.quotelized_sec_access_token}"
+        )
         self.aiohttp_session = aiohttp.ClientSession(cookies=self.cookies)
         request_headers_constructor = ConversationConnectRequestHeadersConstructor()
         self.wss = await self.aiohttp_session.ws_connect(

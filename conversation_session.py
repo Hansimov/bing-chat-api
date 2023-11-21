@@ -5,7 +5,7 @@ from logger.logger import logger
 
 
 class ConversationSession:
-    def __init__(self, conversation_style="precise"):
+    def __init__(self, conversation_style: str = "precise"):
         self.conversation_style = conversation_style
 
     def __enter__(self):
@@ -22,11 +22,9 @@ class ConversationSession:
     def connect(self):
         self.connector = ConversationConnector(
             conversation_style=self.conversation_style,
-            sec_access_token=self.creator.response_headers[
-                "x-sydney-encryptedconversationsignature"
-            ],
-            client_id=self.creator.response_content["clientId"],
-            conversation_id=self.creator.response_content["conversationId"],
+            sec_access_token=self.creator.sec_access_token,
+            client_id=self.creator.client_id,
+            conversation_id=self.creator.conversation_id,
         )
 
     def open(self):
