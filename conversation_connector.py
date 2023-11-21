@@ -13,10 +13,6 @@ from logger.logger import logger
 http_proxy = "http://localhost:11111"  # Replace with yours
 
 
-def serialize_websocket_message(msg: dict) -> str:
-    return json.dumps(msg, ensure_ascii=False) + "\x1e"
-
-
 class ConversationConnector:
     def __init__(
         self,
@@ -36,12 +32,14 @@ class ConversationConnector:
             + f"?sec_access_token={urllib.parse.quote(self.sec_access_token)}"
         )
 
-    async def _init_handshake(self):
-        await self.wss.send_str(
-            serialize_websocket_message({"protocol": "json", "version": 1})
-        )
+    async def wss_send(self, message):
+        serialized_websocket_message = json.dumps(message, ensure_ascii=False) + "\x1e"
+        await self.wss.send_str(serialized_websocket_message)
+
+    async def init_handshake(self):
+        await self.wss_send({"protocol": "json", "version": 1})
         await self.wss.receive_str()
-        await self.wss.send_str(serialize_websocket_message({"type": 6}))
+        await self.wss_send({"type": 6})
 
     async def stream_chat(self, prompt=""):
         self.aiohttp_session = aiohttp.ClientSession(cookies=self.cookies)
@@ -64,7 +62,7 @@ class ConversationConnector:
             proxy=http_proxy,
         )
 
-        await self._init_handshake()
+        await self.init_handshake()
         chathub_request_constructor = ChathubRequestConstructor(
             prompt=prompt,
             conversation_style="precise",
@@ -74,9 +72,7 @@ class ConversationConnector:
         )
         chathub_request_constructor.construct()
 
-        await self.wss.send_str(
-            serialize_websocket_message(chathub_request_constructor.request_payload)
-        )
+        await self.wss_send(chathub_request_constructor.request_payload)
 
         delta_content_pointer = 0
         while not self.wss.closed:
@@ -105,7 +101,7 @@ class ConversationConnector:
                             if message_type is None:
                                 content = message["adaptiveCards"][0]["body"][0]["text"]
                                 delta_content = content[delta_content_pointer:]
-                                logger.mesg(delta_content, end="")
+                                logger.line(delta_content, end="")
                                 delta_content_pointer = len(content)
                                 # Message: Suggested Questions
                                 if message.get("suggestedResponses"):

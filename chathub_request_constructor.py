@@ -16,13 +16,13 @@ class ChathubRequestConstructor:
         self.conversation_id = conversation_id
         self.invocation_id = invocation_id
         self.conversation_style = conversation_style
-        self.message_id = self._generate_random_uuid()
+        self.message_id = self.generate_random_uuid()
         self.construct()
 
-    def _generate_random_uuid(self):
+    def generate_random_uuid(self):
         return str(uuid.uuid4())
 
-    def _generate_random_hex_str(self, length: int = 32) -> str:
+    def generate_random_hex_str(self, length: int = 32) -> str:
         return "".join(random.choice("0123456789abcdef") for _ in range(length))
 
     def construct(self):
@@ -97,7 +97,7 @@ class ChathubRequestConstructor:
                     "plugins": [
                         {"id": "c310c353-b9f0-4d76-ab0d-1dd5e979cf68"},
                     ],
-                    "traceId": self._generate_random_hex_str(),
+                    "traceId": self.generate_random_hex_str(),
                     "conversationHistoryOptionsSets": [
                         "autosave",
                         "savemem",
