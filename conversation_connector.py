@@ -2,7 +2,6 @@ import aiohttp
 import asyncio
 import httpx
 import json
-import pprint
 import urllib
 
 from conversation_creator import ConversationCreator
@@ -37,7 +36,7 @@ class ConversationConnectRequestHeadersConstructor:
 class ConversationConnector:
     def __init__(
         self,
-        conversation_style="pecise",
+        conversation_style="precise",
         sec_access_token=None,
         client_id=None,
         conversation_id=None,
@@ -139,11 +138,15 @@ if __name__ == "__main__":
         client_id=creator.response_content["clientId"],
         conversation_id=creator.response_content["conversationId"],
     )
-    prompt = "Today's weather of California"
-    # prompt = "Tell me your name. Your output should be no more than 3 words."
-    logger.success(f"\n[User]: ", end="")
-    logger.mesg(f"{prompt}")
-    logger.success(f"\n[Bing]:")
+
+    prompts = [
+        "Today's weather of California",
+        "Please summarize your previous answer in table format",
+    ]
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(connector.stream_chat(prompt=prompt))
+    for prompt in prompts:
+        logger.success(f"\n[User]: ", end="")
+        logger.mesg(f"{prompt}")
+        logger.success(f"[Bing]:")
+        loop.run_until_complete(connector.stream_chat(prompt=prompt))
     loop.close()
