@@ -4,33 +4,14 @@ import httpx
 import json
 import urllib
 
-from conversation_creator import ConversationCreator
-from chathub_request_constructor import ChathubRequestConstructor
-from message_parser import MessageParser
-from logger.logger import logger
-
+from networks import (
+    ChathubRequestPayloadConstructor,
+    ConversationRequestHeadersConstructor,
+)
+from networks import MessageParser
+from utils.logger import logger
 
 http_proxy = "http://localhost:11111"  # Replace with yours
-
-
-class ConversationConnectRequestHeadersConstructor:
-    def __init__(self):
-        self.construct()
-
-    def construct(self):
-        self.request_headers = {
-            "Accept-Encoding": " gzip, deflate, br",
-            "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
-            "Cache-Control": "no-cache",
-            "Connection": "Upgrade",
-            "Host": "sydney.bing.com",
-            "Origin": "https://www.bing.com",
-            "Pragma": "no-cache",
-            "Sec-Websocket-Extensions": "permessage-deflate; client_max_window_bits",
-            "Sec-Websocket-Version": "13",
-            "Upgrade": "websocket",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-        }
 
 
 class ConversationConnector:
@@ -66,23 +47,23 @@ class ConversationConnector:
             f"?sec_access_token={self.quotelized_sec_access_token}"
         )
         self.aiohttp_session = aiohttp.ClientSession(cookies=self.cookies)
-        request_headers_constructor = ConversationConnectRequestHeadersConstructor()
+        headers_constructor = ConversationRequestHeadersConstructor()
         self.wss = await self.aiohttp_session.ws_connect(
             self.ws_url,
-            headers=request_headers_constructor.request_headers,
+            headers=headers_constructor.request_headers,
             proxy=http_proxy,
         )
         await self.init_handshake()
 
     async def send_chathub_request(self, prompt):
-        chathub_request_constructor = ChathubRequestConstructor(
+        payload_constructor = ChathubRequestPayloadConstructor(
             prompt=prompt,
             conversation_style=self.conversation_style,
             client_id=self.client_id,
             conversation_id=self.conversation_id,
             invocation_id=self.invocation_id,
         )
-        self.connect_request_payload = chathub_request_constructor.request_payload
+        self.connect_request_payload = payload_constructor.request_payload
         await self.wss_send(self.connect_request_payload)
 
     async def stream_chat(self, prompt=""):

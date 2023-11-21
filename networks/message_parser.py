@@ -1,4 +1,4 @@
-from logger.logger import logger
+from utils.logger import logger
 
 
 class MessageParser:
@@ -7,11 +7,9 @@ class MessageParser:
 
     def parse(self, data):
         arguments = data["arguments"][0]
-
         if arguments.get("throttling"):
             throttling = arguments.get("throttling")
             # pprint.pprint(throttling)
-
         if arguments.get("messages"):
             for message in arguments.get("messages"):
                 message_type = message.get("messageType")

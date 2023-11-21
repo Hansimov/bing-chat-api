@@ -1,7 +1,6 @@
 import asyncio
-from conversation_creator import ConversationCreator
-from conversation_connector import ConversationConnector
-from logger.logger import logger
+from conversations import ConversationCreator, ConversationConnector
+from utils.logger import logger
 
 
 class ConversationSession:

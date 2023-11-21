@@ -2,7 +2,7 @@ import random
 import uuid
 
 
-class ChathubRequestConstructor:
+class ChathubRequestPayloadConstructor:
     def __init__(
         self,
         prompt,
