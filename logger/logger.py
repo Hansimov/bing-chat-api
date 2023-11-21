@@ -155,19 +155,17 @@ class Logger:
             quotes = ["'", '"']
             if msg_str[0] in quotes and msg_str[-1] in quotes:
                 msg_str = msg_str[1:-1]
-        msg_lines = msg_str.splitlines()
 
-        self.store_indent()
-        self.indent(indent)
-        indent_str = " " * self.log_indent
-        self.restore_indent()
+        indent_str = " " * (self.log_indent + indent)
+        indented_msg = "\n".join([indent_str + line for line in msg_str.split("\n")])
 
-        level, color = self.LOG_METHODS[method]
-        indented_msg = "\n".join([f"{indent_str}{line}" for line in msg_lines])
         if fill:
             indented_msg = add_fillers(indented_msg, fill_side=fill_side)
+
         handler = self.logger.handlers[0]
         handler.terminator = end
+
+        level, color = self.LOG_METHODS[method]
         getattr(self.logger, level)(colored(indented_msg, color), *args, **kwargs)
 
     def bind_functions(self):
