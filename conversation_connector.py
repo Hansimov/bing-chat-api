@@ -125,28 +125,3 @@ class ConversationConnector:
                 # Stream: Not Monitored
                 else:
                     continue
-
-
-if __name__ == "__main__":
-    creator = ConversationCreator()
-    creator.create()
-
-    connector = ConversationConnector(
-        sec_access_token=creator.response_headers[
-            "x-sydney-encryptedconversationsignature"
-        ],
-        client_id=creator.response_content["clientId"],
-        conversation_id=creator.response_content["conversationId"],
-    )
-
-    prompts = [
-        "Today's weather of California",
-        "Please summarize your previous answer in table format",
-    ]
-    loop = asyncio.get_event_loop()
-    for prompt in prompts:
-        logger.success(f"\n[User]: ", end="")
-        logger.mesg(f"{prompt}")
-        logger.success(f"[Bing]:")
-        loop.run_until_complete(connector.stream_chat(prompt=prompt))
-    loop.close()
