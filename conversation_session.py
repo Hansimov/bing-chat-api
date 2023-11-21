@@ -5,12 +5,15 @@ from logger.logger import logger
 
 
 class ConversationSession:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, conversation_style="precise"):
+        self.conversation_style = conversation_style
 
-    def run(self):
-        self.create()
-        self.connect()
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
 
     def create(self):
         self.creator = ConversationCreator()
@@ -18,6 +21,7 @@ class ConversationSession:
 
     def connect(self):
         self.connector = ConversationConnector(
+            conversation_style=self.conversation_style,
             sec_access_token=self.creator.response_headers[
                 "x-sydney-encryptedconversationsignature"
             ],
@@ -26,6 +30,8 @@ class ConversationSession:
         )
 
     def open(self):
+        self.create()
+        self.connect()
         self.event_loop = asyncio.get_event_loop()
 
     def close(self):
@@ -39,13 +45,10 @@ class ConversationSession:
 
 
 if __name__ == "__main__":
-    session = ConversationSession()
-    session.run()
-    session.open()
     prompts = [
         "Today's weather of California",
         "Please summarize your previous answer in table format",
     ]
-    for prompt in prompts:
-        session.chat(prompt)
-    session.close()
+    with ConversationSession("precise") as session:
+        for prompt in prompts:
+            session.chat(prompt)
