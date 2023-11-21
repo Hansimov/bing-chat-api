@@ -61,6 +61,16 @@ class ConversationConnector:
         await self.wss.receive_str()
         await self.wss_send({"type": 6})
 
+    def construct_chathub_request_payload(self, prompt):
+        chathub_request_constructor = ChathubRequestConstructor(
+            prompt=prompt,
+            conversation_style="precise",
+            client_id=self.client_id,
+            conversation_id=self.conversation_id,
+            invocation_id=self.invocation_id,
+        )
+        self.connect_request_payload = chathub_request_constructor.request_payload
+
     async def stream_chat(self, prompt=""):
         self.aiohttp_session = aiohttp.ClientSession(cookies=self.cookies)
         request_headers_constructor = ConversationConnectRequestHeadersConstructor()
@@ -71,15 +81,8 @@ class ConversationConnector:
         )
 
         await self.init_handshake()
-        chathub_request_constructor = ChathubRequestConstructor(
-            prompt=prompt,
-            conversation_style="precise",
-            client_id=self.client_id,
-            conversation_id=self.conversation_id,
-            invocation_id=self.invocation_id,
-        )
-
-        await self.wss_send(chathub_request_constructor.request_payload)
+        self.construct_chathub_request_payload(prompt)
+        await self.wss_send(self.connect_request_payload)
 
         delta_content_pointer = 0
         while not self.wss.closed:
