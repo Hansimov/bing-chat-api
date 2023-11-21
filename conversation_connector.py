@@ -88,33 +88,29 @@ class ConversationConnector:
     async def stream_chat(self, prompt=""):
         await self.init_wss_connection()
         await self.send_chathub_request(prompt)
-
         message_parser = MessageParser()
         while not self.wss.closed:
             response_lines_str = await self.wss.receive_str()
-
             if isinstance(response_lines_str, str):
                 response_lines = response_lines_str.split("\x1e")
             else:
                 continue
-
             for line in response_lines:
                 if not line:
                     continue
-
                 data = json.loads(line)
-
                 # Stream: Meaningful Messages
                 if data.get("type") == 1:
                     message_parser.parse(data)
                 # Stream: List of all messages in the whole conversation
                 elif data.get("type") == 2:
                     if data.get("item"):
-                        item = data.get("item")
-                        logger.note("\n[Saving chat messages ...]")
+                        # item = data.get("item")
+                        # logger.note("\n[Saving chat messages ...]")
+                        pass
                 # Stream: End of Conversation
                 elif data.get("type") == 3:
-                    logger.success("[Finished]")
+                    logger.success("\n[Finished]")
                     self.invocation_id += 1
                     await self.wss.close()
                     await self.aiohttp_session.close()

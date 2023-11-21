@@ -23,7 +23,7 @@ class MessageParser:
                     self.delta_content_pointer = len(content)
                     # Message: Suggested Questions
                     if message.get("suggestedResponses"):
-                        logger.note("\n\nSuggested Questions: ")
+                        logger.note("\nSuggested Questions: ")
                         for suggestion in message.get("suggestedResponses"):
                             suggestion_text = suggestion.get("text")
                             logger.file(f"- {suggestion_text}")
@@ -36,7 +36,8 @@ class MessageParser:
                     logger.note("[Analyzing search results ...]")
                 # Message: Loader status, such as "Generating Answers"
                 elif message_type in ["InternalLoaderMessage"]:
-                    logger.note("[Generating answers ...]\n")
+                    # logger.note("[Generating answers ...]\n")
+                    pass
                 # Message: Render Cards for Webpages
                 elif message_type in ["RenderCardRequest"]:
                     continue
