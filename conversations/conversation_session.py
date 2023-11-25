@@ -34,11 +34,11 @@ class ConversationSession:
     def close(self):
         self.event_loop.close()
 
-    def chat(self, prompt):
+    async def chat(self, prompt):
         logger.success(f"\n[User]: ", end="")
         logger.mesg(f"{prompt}")
         logger.success(f"[Bing]:")
-        self.event_loop.run_until_complete(self.connector.stream_chat(prompt=prompt))
+        return await self.connector.stream_chat(prompt=prompt)
 
 
 if __name__ == "__main__":

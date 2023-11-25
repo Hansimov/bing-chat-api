@@ -1,6 +1,7 @@
 import uvicorn
 
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
+from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field
 from conversations import ConversationSession
 
@@ -43,11 +44,26 @@ class ChatAPIApp:
         ]
         return self.available_models
 
+    async def create_conversation_session(
+        self, websocket: WebSocket, conversation_style="precise"
+    ):
+        await websocket.accept()
+        conversation_session = ConversationSession(conversation_style)
+        conversation_session.open()
+        while True:
+            try:
+                data = await websocket.receive_text()
+                response = await conversation_session.chat(data)
+                await websocket.send_text(response)
+            except Exception as e:
+                print(e)
+                break
+
     def setup_routes(self):
-        self.app.get(
-            "/models",
-            summary="Get available models",
-        )(self.get_available_models)
+        self.router = APIRouter()
+        self.router.add_api_route("/models", self.get_available_models)
+        self.router.add_websocket_route("/create", self.create_conversation_session)
+        self.app.include_router(self.router)
 
 
 app = ChatAPIApp().app
