@@ -44,26 +44,31 @@ class ChatAPIApp:
         ]
         return self.available_models
 
-    async def create_conversation_session(
-        self, websocket: WebSocket, conversation_style="precise"
-    ):
-        await websocket.accept()
-        conversation_session = ConversationSession(conversation_style)
-        conversation_session.open()
-        while True:
-            try:
-                data = await websocket.receive_text()
-                response = await conversation_session.chat(data)
-                await websocket.send_text(response)
-            except Exception as e:
-                print(e)
-                break
+    class CreateConversationSessionPostItem(BaseModel):
+        model: str = Field(
+            default="precise",
+            description="(str) `precise`, `balanced`, `creative`, `precise-offline`, `balanced-offline`, `creative-offline`",
+        )
+
+    def create_conversation_session(self, item: CreateConversationSessionPostItem):
+        session = ConversationSession(item.model)
+        session.open()
+        return {
+            "conversation_id": session.connector.conversation_id,
+            "client_id": session.connector.client_id,
+            "sec_access_token": session.connector.sec_access_token,
+        }
 
     def setup_routes(self):
-        self.router = APIRouter()
-        self.router.add_api_route("/models", self.get_available_models)
-        self.router.add_websocket_route("/create", self.create_conversation_session)
-        self.app.include_router(self.router)
+        self.app.get(
+            "/models",
+            summary="Get available models",
+        )(self.get_available_models)
+
+        self.app.post(
+            "/create",
+            summary="Create a conversation session",
+        )(self.create_conversation_session)
 
 
 app = ChatAPIApp().app

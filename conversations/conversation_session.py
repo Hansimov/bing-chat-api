@@ -29,16 +29,17 @@ class ConversationSession:
     def open(self):
         self.create()
         self.connect()
-        self.event_loop = asyncio.get_event_loop()
+        self.event_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.event_loop)
 
     def close(self):
         self.event_loop.close()
 
-    async def chat(self, prompt):
+    def chat(self, prompt):
         logger.success(f"\n[User]: ", end="")
         logger.mesg(f"{prompt}")
         logger.success(f"[Bing]:")
-        return await self.connector.stream_chat(prompt=prompt)
+        self.event_loop.run_until_complete(self.connector.stream_chat(prompt=prompt))
 
 
 if __name__ == "__main__":
