@@ -8,7 +8,7 @@ from networks import (
     ChathubRequestPayloadConstructor,
     ConversationRequestHeadersConstructor,
 )
-from networks import MessageParser
+from networks import MessageParser, IdleOutputer
 from utils.logger import logger
 
 http_proxy = "http://localhost:11111"  # Replace with yours
@@ -80,7 +80,7 @@ class ConversationConnector:
     async def stream_chat(self, prompt=""):
         await self.connect()
         await self.send_chathub_request(prompt)
-        message_parser = MessageParser()
+        message_parser = MessageParser(outputer=IdleOutputer())
         while not self.wss.closed:
             response_lines_str = await self.wss.receive_str()
             if isinstance(response_lines_str, str):
@@ -110,6 +110,6 @@ class ConversationConnector:
                 # Stream: Heartbeat Signal
                 elif data.get("type") == 6:
                     continue
-                # Stream: Not Monitored
+                # Stream: Not Implemented
                 else:
                     continue
