@@ -4,8 +4,15 @@ from utils.logger import logger
 
 
 class ConversationSession:
-    def __init__(self, conversation_style: str = "precise"):
+    def __init__(
+        self,
+        conversation_style: str = "precise",
+        creator=None,
+        connector=None,
+    ):
         self.conversation_style = conversation_style
+        self.creator = creator
+        self.connector = connector
 
     def __enter__(self):
         self.open()
@@ -19,15 +26,16 @@ class ConversationSession:
         self.creator.create()
 
     def connect(self):
-        self.connector = ConversationConnector(
-            conversation_style=self.conversation_style,
-            sec_access_token=self.creator.sec_access_token,
-            client_id=self.creator.client_id,
-            conversation_id=self.creator.conversation_id,
-        )
+        if self.connector is None:
+            self.create()
+            self.connector = ConversationConnector(
+                conversation_style=self.conversation_style,
+                sec_access_token=self.creator.sec_access_token,
+                client_id=self.creator.client_id,
+                conversation_id=self.creator.conversation_id,
+            )
 
     def open(self):
-        self.create()
         self.connect()
         self.event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.event_loop)

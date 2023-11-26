@@ -3,7 +3,11 @@ import uvicorn
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field
-from conversations import ConversationSession
+from conversations import (
+    ConversationConnector,
+    ConversationCreator,
+    ConversationSession,
+)
 
 
 class ChatAPIApp:
@@ -18,27 +22,27 @@ class ChatAPIApp:
     def get_available_models(self):
         self.available_models = [
             {
-                "id": "bing-precise",
+                "id": "precise",
                 "description": "Bing (Precise): Concise and straightforward.",
             },
             {
-                "id": "bing-balanced",
+                "id": "balanced",
                 "description": "Bing (Balanced): Informative and friendly.",
             },
             {
-                "id": "bing-creative",
+                "id": "creative",
                 "description": "Bing (Creative): Original and imaginative.",
             },
             {
-                "id": "bing-precise-offline",
+                "id": "precise-offline",
                 "description": "Bing (Precise): (No Internet) Concise and straightforward.",
             },
             {
-                "id": "bing-balanced-offline",
+                "id": "balanced-offline",
                 "description": "Bing (Balanced): (No Internet) Informative and friendly.",
             },
             {
-                "id": "bing-creative-offline",
+                "id": "creative-offline",
                 "description": "Bing (Creative): (No Internet) Original and imaginative.",
             },
         ]
@@ -51,12 +55,13 @@ class ChatAPIApp:
         )
 
     def create_conversation_session(self, item: CreateConversationSessionPostItem):
-        session = ConversationSession(item.model)
-        session.open()
+        creator = ConversationCreator()
+        creator.create()
         return {
-            "conversation_id": session.connector.conversation_id,
-            "client_id": session.connector.client_id,
-            "sec_access_token": session.connector.sec_access_token,
+            "model": item.model,
+            "conversation_id": creator.conversation_id,
+            "client_id": creator.client_id,
+            "sec_access_token": creator.sec_access_token,
         }
 
     def setup_routes(self):

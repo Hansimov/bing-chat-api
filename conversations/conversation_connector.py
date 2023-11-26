@@ -40,7 +40,7 @@ class ConversationConnector:
         await self.wss.receive_str()
         await self.wss_send({"type": 6})
 
-    async def init_wss_connection(self):
+    async def connect(self):
         self.quotelized_sec_access_token = urllib.parse.quote(self.sec_access_token)
         self.ws_url = (
             f"wss://sydney.bing.com/sydney/ChatHub"
@@ -67,7 +67,7 @@ class ConversationConnector:
         await self.wss_send(self.connect_request_payload)
 
     async def stream_chat(self, prompt=""):
-        await self.init_wss_connection()
+        await self.connect()
         await self.send_chathub_request(prompt)
         message_parser = MessageParser()
         while not self.wss.closed:
