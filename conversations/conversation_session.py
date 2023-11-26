@@ -33,6 +33,7 @@ class ConversationSession:
                 sec_access_token=self.creator.sec_access_token,
                 client_id=self.creator.client_id,
                 conversation_id=self.creator.conversation_id,
+                invocation_id=0,
             )
 
     def open(self):

@@ -64,6 +64,47 @@ class ChatAPIApp:
             "sec_access_token": creator.sec_access_token,
         }
 
+    class ChatPostItem(BaseModel):
+        prompt: str = Field(
+            default="Hello, who are you?",
+            description="(str) Prompt",
+        )
+        model: str = Field(
+            default="precise",
+            description="(str) `precise`, `balanced`, `creative`, `precise-offline`, `balanced-offline`, `creative-offline`",
+        )
+        sec_access_token: str = Field(
+            default="",
+            description="(str) Sec Access Token",
+        )
+        client_id: str = Field(
+            default="",
+            description="(str) Client ID",
+        )
+        conversation_id: str = Field(
+            default="",
+            description="(str) Conversation ID",
+        )
+        invocation_id: int = Field(
+            default=0,
+            description="(int) Invocation ID",
+        )
+
+    def chat(self, item: ChatPostItem):
+        connector = ConversationConnector(
+            conversation_style=item.model,
+            sec_access_token=item.sec_access_token,
+            client_id=item.client_id,
+            conversation_id=item.conversation_id,
+            invocation_id=item.invocation_id,
+        )
+        session = ConversationSession(
+            conversation_style=item.model,
+            connector=connector,
+        )
+        with session:
+            session.chat(prompt=item.prompt)
+
     def setup_routes(self):
         self.app.get(
             "/models",
@@ -74,6 +115,11 @@ class ChatAPIApp:
             "/create",
             summary="Create a conversation session",
         )(self.create_conversation_session)
+
+        self.app.post(
+            "/chat",
+            summary="Chat in conversation session",
+        )(self.chat)
 
 
 app = ChatAPIApp().app
