@@ -8,7 +8,7 @@ from networks import (
     ChathubRequestPayloadConstructor,
     ConversationRequestHeadersConstructor,
 )
-from networks import MessageParser, IdleOutputer
+from networks import MessageParser, IdleOutputer, ContentJSONOutputer
 from utils.logger import logger
 
 http_proxy = "http://localhost:11111"  # Replace with yours
@@ -77,10 +77,10 @@ class ConversationConnector:
         self.connect_request_payload = payload_constructor.request_payload
         await self.wss_send(self.connect_request_payload)
 
-    async def stream_chat(self, prompt=""):
+    async def stream_chat(self, prompt="", yield_output=False):
         await self.connect()
         await self.send_chathub_request(prompt)
-        message_parser = MessageParser(outputer=IdleOutputer())
+        message_parser = MessageParser(outputer=ContentJSONOutputer())
         while not self.wss.closed:
             response_lines_str = await self.wss.receive_str()
             if isinstance(response_lines_str, str):
@@ -93,7 +93,10 @@ class ConversationConnector:
                 data = json.loads(line)
                 # Stream: Meaningful Messages
                 if data.get("type") == 1:
-                    message_parser.parse(data)
+                    if yield_output:
+                        yield message_parser.parse(data, return_output=True)
+                    else:
+                        message_parser.parse(data)
                 # Stream: List of all messages in the whole conversation
                 elif data.get("type") == 2:
                     if data.get("item"):
@@ -102,10 +105,21 @@ class ConversationConnector:
                         pass
                 # Stream: End of Conversation
                 elif data.get("type") == 3:
-                    logger.success("\n[Finished]")
+                    finished_str = "\n[Finished]"
+                    logger.success(finished_str)
                     self.invocation_id += 1
                     await self.wss.close()
                     await self.aiohttp_session.close()
+                    if yield_output:
+                        yield (
+                            json.dumps(
+                                {
+                                    "content": finished_str,
+                                    "content_type": "Finished",
+                                }
+                            )
+                            + "\n"
+                        ).encode("utf-8")
                     break
                 # Stream: Heartbeat Signal
                 elif data.get("type") == 6:

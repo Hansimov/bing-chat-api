@@ -1,13 +1,16 @@
+import json
 import uvicorn
 
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
-from fastapi.routing import APIRoute
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from conversations import (
     ConversationConnector,
     ConversationCreator,
     ConversationSession,
 )
+
+from networks import StreamResponseConstructor
 
 
 class ChatAPIApp:
@@ -59,9 +62,9 @@ class ChatAPIApp:
         creator.create()
         return {
             "model": item.model,
-            "conversation_id": creator.conversation_id,
-            "client_id": creator.client_id,
             "sec_access_token": creator.sec_access_token,
+            "client_id": creator.client_id,
+            "conversation_id": creator.conversation_id,
         }
 
     class ChatPostItem(BaseModel):
@@ -105,6 +108,51 @@ class ChatAPIApp:
         with session:
             session.chat(prompt=item.prompt)
 
+    class ChatCompletionsPostItem(BaseModel):
+        model: str = Field(
+            default="precise",
+            description="(str) `precise`, `balanced`, `creative`, `precise-offline`, `balanced-offline`, `creative-offline`",
+        )
+        messages: list = Field(
+            default=[{"role": "user", "content": "Hello, who are you?"}],
+            description="(list) Messages",
+        )
+        sec_access_token: str = Field(
+            default="",
+            description="(str) Sec Access Token",
+        )
+        client_id: str = Field(
+            default="",
+            description="(str) Client ID",
+        )
+        conversation_id: str = Field(
+            default="",
+            description="(str) Conversation ID",
+        )
+        invocation_id: int = Field(
+            default=0,
+            description="(int) Invocation ID",
+        )
+
+    async def chat_completions(self, item: ChatCompletionsPostItem):
+        connector = ConversationConnector(
+            conversation_style=item.model,
+            sec_access_token=item.sec_access_token,
+            client_id=item.client_id,
+            conversation_id=item.conversation_id,
+            invocation_id=item.invocation_id,
+        )
+
+        if item.invocation_id == 0:
+            # TODO: History Messages Merger
+            prompt = item.messages[-1]["content"]
+        else:
+            prompt = item.messages[-1]["content"]
+
+        return StreamingResponse(
+            connector.stream_chat(prompt=prompt, yield_output=True)
+        )
+
     def setup_routes(self):
         self.app.get(
             "/models",
@@ -120,6 +168,11 @@ class ChatAPIApp:
             "/chat",
             summary="Chat in conversation session",
         )(self.chat)
+
+        self.app.post(
+            "/chat/completions",
+            summary="Chat completions in conversation session",
+        )(self.chat_completions)
 
 
 app = ChatAPIApp().app

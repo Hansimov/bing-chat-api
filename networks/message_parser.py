@@ -1,13 +1,15 @@
+import json
+
 from utils.logger import logger
-from networks import IdleOutputer
+from networks import IdleOutputer, ContentJSONOutputer
 
 
 class MessageParser:
-    def __init__(self, outputer=IdleOutputer()):
+    def __init__(self, outputer=ContentJSONOutputer()):
         self.delta_content_pointer = 0
         self.outputer = outputer
 
-    def parse(self, data):
+    def parse(self, data, return_output=False):
         arguments = data["arguments"][0]
         if arguments.get("throttling"):
             throttling = arguments.get("throttling")
@@ -20,7 +22,6 @@ class MessageParser:
                     content = message["adaptiveCards"][0]["body"][0]["text"]
                     delta_content = content[self.delta_content_pointer :]
                     logger.line(delta_content, end="")
-                    self.outputer.output(delta_content, message_type="Completions")
                     self.delta_content_pointer = len(content)
                     # Message: Suggested Questions
                     if message.get("suggestedResponses"):
@@ -28,20 +29,34 @@ class MessageParser:
                         for suggestion in message.get("suggestedResponses"):
                             suggestion_text = suggestion.get("text")
                             logger.file(f"- {suggestion_text}")
-                        self.outputer.output(
-                            message.get("suggestedResponses"),
-                            message_type="Suggestions",
+                    if return_output:
+                        output_bytes = self.outputer.output(
+                            delta_content, content_type="Completions"
                         )
+                        if message.get("suggestedResponses"):
+                            output_bytes += self.outputer.output(
+                                message.get("suggestedResponses"),
+                                content_type="SuggestedResponses",
+                            )
+                        return output_bytes
+
                 # Message: Search Query
                 elif message_type in ["InternalSearchQuery"]:
                     message_hidden_text = message["hiddenText"]
-                    logger.note(f"\n[Searching: [{message_hidden_text}]]")
-                    self.outputer.output(
-                        message_hidden_text, message_type="InternalSearchQuery"
-                    )
+                    search_str = f"\n[Searching: [{message_hidden_text}]]"
+                    logger.note(search_str)
+                    if return_output:
+                        return self.outputer.output(
+                            search_str, content_type="InternalSearchQuery"
+                        )
                 # Message: Internal Search Results
                 elif message_type in ["InternalSearchResult"]:
-                    logger.note("[Analyzing search results ...]")
+                    analysis_str = f"\n[Analyzing search results ...]"
+                    logger.note(analysis_str)
+                    if return_output:
+                        return self.outputer.output(
+                            analysis_str, content_type="InternalSearchResult"
+                        )
                 # Message: Loader status, such as "Generating Answers"
                 elif message_type in ["InternalLoaderMessage"]:
                     # logger.note("[Generating answers ...]\n")
@@ -62,3 +77,15 @@ class MessageParser:
                     raise NotImplementedError(
                         f"Not Supported Message Type: {message_type}"
                     )
+
+        return (
+            (
+                json.dumps(
+                    {
+                        "content": "",
+                        "content_type": "NotImplemented",
+                    }
+                )
+            )
+            + "\n"
+        ).encode("utf-8")
