@@ -37,8 +37,12 @@ class MessageParser:
                             delta_content, content_type="Completions"
                         )
                         if message.get("suggestedResponses"):
+                            suggestion_texts_str = "\nSuggested Questions:\n"
+                            suggestion_texts_str += "\n".join(
+                                f"- {item}" for item in suggestion_texts
+                            )
                             output_bytes += self.outputer.output(
-                                suggestion_texts,
+                                suggestion_texts_str,
                                 content_type="SuggestedResponses",
                             )
                         return output_bytes
@@ -46,7 +50,7 @@ class MessageParser:
                 # Message: Search Query
                 elif message_type in ["InternalSearchQuery"]:
                     message_hidden_text = message["hiddenText"]
-                    search_str = f"\n[Searching: [{message_hidden_text}]]"
+                    search_str = f"\n[Searching: [{message_hidden_text}]]\n"
                     logger.note(search_str)
                     if return_output:
                         return self.outputer.output(
@@ -54,7 +58,7 @@ class MessageParser:
                         )
                 # Message: Internal Search Results
                 elif message_type in ["InternalSearchResult"]:
-                    analysis_str = f"\n[Analyzing search results ...]"
+                    analysis_str = f"\n[Analyzing search results ...]\n"
                     logger.note(analysis_str)
                     if return_output:
                         return self.outputer.output(

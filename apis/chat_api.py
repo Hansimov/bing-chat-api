@@ -150,7 +150,8 @@ class ChatAPIApp:
             prompt = item.messages[-1]["content"]
 
         return StreamingResponse(
-            connector.stream_chat(prompt=prompt, yield_output=True)
+            connector.stream_chat(prompt=prompt, yield_output=True),
+            media_type="text/plain",
         )
 
     def setup_routes(self):

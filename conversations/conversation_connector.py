@@ -81,6 +81,10 @@ class ConversationConnector:
         await self.connect()
         await self.send_chathub_request(prompt)
         message_parser = MessageParser(outputer=OpenaiStreamOutputer())
+        has_output_role_message = False
+        if yield_output and not has_output_role_message:
+            has_output_role_message = True
+            yield message_parser.outputer.output(content="", content_type="Role")
         while not self.wss.closed:
             response_lines_str = await self.wss.receive_str()
             if isinstance(response_lines_str, str):
