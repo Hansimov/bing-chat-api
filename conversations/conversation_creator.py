@@ -16,10 +16,19 @@ class ConversationCreator:
         for key, val in self.cookies.items():
             self.httpx_cookies.set(key, val)
 
+    def construct_headers(self):
+        # New Bing 封锁原理探讨 #78
+        # https://github.com/weaigc/bingo/issues/78
+        self.request_headers = {
+            "X-Forwarded-For": "65.49.22.66",
+        }
+
     def create(self, proxy: str = None):
         self.construct_cookies()
+        self.construct_headers()
         self.response = httpx.get(
             self.conversation_create_url,
+            headers=self.request_headers,
             proxies=http_proxy if proxy is None else proxy,
             cookies=self.httpx_cookies,
         )
