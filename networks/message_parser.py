@@ -1,11 +1,11 @@
 import json
 
 from utils.logger import logger
-from networks import IdleOutputer, ContentJSONOutputer
+from networks import OpenaiStreamOutputer
 
 
 class MessageParser:
-    def __init__(self, outputer=ContentJSONOutputer()):
+    def __init__(self, outputer=OpenaiStreamOutputer()):
         self.delta_content_pointer = 0
         self.outputer = outputer
 
@@ -26,8 +26,11 @@ class MessageParser:
                     # Message: Suggested Questions
                     if message.get("suggestedResponses"):
                         logger.note("\nSuggested Questions: ")
-                        for suggestion in message.get("suggestedResponses"):
-                            suggestion_text = suggestion.get("text")
+                        suggestion_texts = [
+                            suggestion.get("text")
+                            for suggestion in message.get("suggestedResponses")
+                        ]
+                        for suggestion_text in suggestion_texts:
                             logger.file(f"- {suggestion_text}")
                     if return_output:
                         output_bytes = self.outputer.output(
@@ -35,7 +38,7 @@ class MessageParser:
                         )
                         if message.get("suggestedResponses"):
                             output_bytes += self.outputer.output(
-                                message.get("suggestedResponses"),
+                                suggestion_texts,
                                 content_type="SuggestedResponses",
                             )
                         return output_bytes
@@ -78,14 +81,5 @@ class MessageParser:
                         f"Not Supported Message Type: {message_type}"
                     )
 
-        return (
-            (
-                json.dumps(
-                    {
-                        "content": "",
-                        "content_type": "NotImplemented",
-                    }
-                )
-            )
-            + "\n"
-        ).encode("utf-8")
+        # return OpenaiStreamOutputer().output(content="", content_type="NotImplemented")
+        return b""

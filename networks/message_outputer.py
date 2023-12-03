@@ -1,13 +1,8 @@
 import json
 
 
-class IdleOutputer:
-    def output(self, content=None, content_type=None):
-        return json.dumps({}).encode("utf-8")
-
-
-class ContentJSONOutputer:
-    def output(self, content=None, content_type=None):
+class OpenaiStreamOutputer:
+    def output(self, content=None, content_type=None) -> bytes:
         return (
             json.dumps(
                 {

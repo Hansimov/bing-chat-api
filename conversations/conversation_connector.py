@@ -8,7 +8,7 @@ from networks import (
     ChathubRequestPayloadConstructor,
     ConversationRequestHeadersConstructor,
 )
-from networks import MessageParser, IdleOutputer, ContentJSONOutputer
+from networks import MessageParser, OpenaiStreamOutputer
 from utils.logger import logger
 
 http_proxy = "http://localhost:11111"  # Replace with yours
@@ -80,7 +80,7 @@ class ConversationConnector:
     async def stream_chat(self, prompt="", yield_output=False):
         await self.connect()
         await self.send_chathub_request(prompt)
-        message_parser = MessageParser(outputer=ContentJSONOutputer())
+        message_parser = MessageParser(outputer=OpenaiStreamOutputer())
         while not self.wss.closed:
             response_lines_str = await self.wss.receive_str()
             if isinstance(response_lines_str, str):
@@ -111,15 +111,9 @@ class ConversationConnector:
                     await self.wss.close()
                     await self.aiohttp_session.close()
                     if yield_output:
-                        yield (
-                            json.dumps(
-                                {
-                                    "content": finished_str,
-                                    "content_type": "Finished",
-                                }
-                            )
-                            + "\n"
-                        ).encode("utf-8")
+                        yield message_parser.outputer.output(
+                            content=finished_str, content_type="Finished"
+                        )
                     break
                 # Stream: Heartbeat Signal
                 elif data.get("type") == 6:
