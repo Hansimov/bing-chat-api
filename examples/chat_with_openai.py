@@ -15,7 +15,7 @@ response = client.chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": "how many questions have I asked you?",
+            "content": "search california's weather for me",
         }
     ],
     stream=True,
@@ -29,4 +29,5 @@ for chunk in response:
     elif chunk.choices[0].finish_reason == "stop":
         print()
     else:
-        print(chunk)
+        # print(chunk)
+        pass

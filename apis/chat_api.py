@@ -11,17 +11,6 @@ from networks import OpenaiStreamOutputer
 from sse_starlette.sse import EventSourceResponse
 
 
-def mock_stream_chat(prompt):
-    outputer = OpenaiStreamOutputer()
-    for i in range(10):
-        output = outputer.output(content=f"MSG {i} ", content_type="Completions")
-        print(output)
-        yield output
-    output = outputer.output(content="", content_type="Finished")
-    print(output)
-    yield output
-
-
 class ChatAPIApp:
     def __init__(self):
         self.app = FastAPI(
@@ -144,13 +133,13 @@ class ChatAPIApp:
         )
 
     def chat_completions(self, item: ChatCompletionsPostItem):
-        # connector = ConversationConnector(
-        #     conversation_style=item.model,
-        #     sec_access_token=item.sec_access_token,
-        #     client_id=item.client_id,
-        #     conversation_id=item.conversation_id,
-        #     invocation_id=item.invocation_id,
-        # )
+        connector = ConversationConnector(
+            conversation_style=item.model,
+            sec_access_token=item.sec_access_token,
+            client_id=item.client_id,
+            conversation_id=item.conversation_id,
+            invocation_id=item.invocation_id,
+        )
 
         if item.invocation_id == 0:
             # TODO: History Messages Merger
@@ -159,8 +148,7 @@ class ChatAPIApp:
             prompt = item.messages[-1]["content"]
 
         return EventSourceResponse(
-            # connector.stream_chat(prompt=prompt, yield_output=True),
-            mock_stream_chat(prompt),
+            connector.stream_chat(prompt=prompt, yield_output=True),
             media_type="text/event-stream",
         )
 

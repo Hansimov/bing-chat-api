@@ -7,21 +7,13 @@ class OpenaiStreamOutputer:
     * https://platform.openai.com/docs/api-reference/chat/create
     """
 
-    def data_to_string(self, data={}, content_type="", media_type=None):
+    def data_to_string(self, data={}, content_type=""):
         # return (json.dumps(data) + "\n").encode("utf-8")
-        data_str = f"{json.dumps(data)}\n"
-
-        if media_type == "text/event-stream":
-            data_str = f"data: {data_str}"
+        data_str = f"{json.dumps(data)}"
 
         return data_str
 
-    def output(
-        self,
-        content=None,
-        content_type=None,
-        media_type=None,
-    ) -> bytes:
+    def output(self, content=None, content_type=None) -> str:
         data = {
             "created": 1677825464,
             "id": "chatcmpl-bing",
@@ -69,4 +61,4 @@ class OpenaiStreamOutputer:
                     "finish_reason": None,
                 }
             ]
-        return self.data_to_string(data, content_type, media_type)
+        return self.data_to_string(data, content_type)

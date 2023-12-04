@@ -1,5 +1,3 @@
-import json
-
 from utils.logger import logger
 from networks import OpenaiStreamOutputer
 
@@ -33,7 +31,7 @@ class MessageParser:
                         for suggestion_text in suggestion_texts:
                             logger.file(f"- {suggestion_text}")
                     if return_output:
-                        output_bytes = self.outputer.output(
+                        completions_output = self.outputer.output(
                             delta_content, content_type="Completions"
                         )
                         if message.get("suggestedResponses"):
@@ -41,11 +39,13 @@ class MessageParser:
                             suggestion_texts_str += "\n".join(
                                 f"- {item}" for item in suggestion_texts
                             )
-                            output_bytes += self.outputer.output(
+                            suggestions_output = self.outputer.output(
                                 suggestion_texts_str,
                                 content_type="SuggestedResponses",
                             )
-                        return output_bytes
+                            return [completions_output, suggestions_output]
+                        else:
+                            return completions_output
 
                 # Message: Search Query
                 elif message_type in ["InternalSearchQuery"]:

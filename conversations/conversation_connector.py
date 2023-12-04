@@ -98,7 +98,12 @@ class ConversationConnector:
                 # Stream: Meaningful Messages
                 if data.get("type") == 1:
                     if yield_output:
-                        yield message_parser.parse(data, return_output=True)
+                        output = message_parser.parse(data, return_output=True)
+                        if isinstance(output, list):
+                            for item in output:
+                                yield item
+                        else:
+                            yield output
                     else:
                         message_parser.parse(data)
                 # Stream: List of all messages in the whole conversation
