@@ -22,17 +22,11 @@ response = client.chat.completions.create(
     extra_body=extra_body,
 )
 
-print(response)
-
-for chunk in response:
-    # print(chunk.choices[0].delta)
-    print("??")
-
-# print(response.choices[0].message)
 # print(response)
-
-# for chunk in stream:
-#     if chunk.choices[0].delta.content is not None:
-#         print(chunk.choices[0].delta.content)
-#     else:
-#         print(chunk)
+for chunk in response:
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+    elif chunk.choices[0].finish_reason == "stop":
+        print()
+    else:
+        print(chunk)

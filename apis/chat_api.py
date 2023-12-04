@@ -1,13 +1,25 @@
 import uvicorn
 
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from conversations import (
     ConversationConnector,
     ConversationCreator,
     ConversationSession,
 )
+from networks import OpenaiStreamOutputer
+from sse_starlette.sse import EventSourceResponse
+
+
+def mock_stream_chat(prompt):
+    outputer = OpenaiStreamOutputer()
+    for i in range(10):
+        output = outputer.output(content=f"MSG {i} ", content_type="Completions")
+        print(output)
+        yield output
+    output = outputer.output(content="", content_type="Finished")
+    print(output)
+    yield output
 
 
 class ChatAPIApp:
@@ -131,14 +143,14 @@ class ChatAPIApp:
             description="(int) Invocation ID",
         )
 
-    async def chat_completions(self, item: ChatCompletionsPostItem):
-        connector = ConversationConnector(
-            conversation_style=item.model,
-            sec_access_token=item.sec_access_token,
-            client_id=item.client_id,
-            conversation_id=item.conversation_id,
-            invocation_id=item.invocation_id,
-        )
+    def chat_completions(self, item: ChatCompletionsPostItem):
+        # connector = ConversationConnector(
+        #     conversation_style=item.model,
+        #     sec_access_token=item.sec_access_token,
+        #     client_id=item.client_id,
+        #     conversation_id=item.conversation_id,
+        #     invocation_id=item.invocation_id,
+        # )
 
         if item.invocation_id == 0:
             # TODO: History Messages Merger
@@ -146,9 +158,10 @@ class ChatAPIApp:
         else:
             prompt = item.messages[-1]["content"]
 
-        return StreamingResponse(
-            connector.stream_chat(prompt=prompt, yield_output=True),
-            media_type="text/plain",
+        return EventSourceResponse(
+            # connector.stream_chat(prompt=prompt, yield_output=True),
+            mock_stream_chat(prompt),
+            media_type="text/event-stream",
         )
 
     def setup_routes(self):

@@ -3,7 +3,7 @@ import httpx
 import json
 import re
 
-
+# If runnning this service with proxy, you might need to unset `http(s)_proxy`.
 chat_api = "http://localhost:22222"
 api_key = "sk-xxxxx"
 requests_headers = {}

@@ -50,7 +50,7 @@ class MessageParser:
                 # Message: Search Query
                 elif message_type in ["InternalSearchQuery"]:
                     message_hidden_text = message["hiddenText"]
-                    search_str = f"\n[Searching: [{message_hidden_text}]]\n"
+                    search_str = f"[Searching: [{message_hidden_text}]]"
                     logger.note(search_str)
                     if return_output:
                         return self.outputer.output(
@@ -58,7 +58,7 @@ class MessageParser:
                         )
                 # Message: Internal Search Results
                 elif message_type in ["InternalSearchResult"]:
-                    analysis_str = f"\n[Analyzing search results ...]\n"
+                    analysis_str = f"[Analyzing search results ...]"
                     logger.note(analysis_str)
                     if return_output:
                         return self.outputer.output(
@@ -85,5 +85,4 @@ class MessageParser:
                         f"Not Supported Message Type: {message_type}"
                     )
 
-        # return OpenaiStreamOutputer().output(content="", content_type="NotImplemented")
-        return b""
+        return self.outputer.output(content="", content_type="NotImplemented")
