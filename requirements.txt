@@ -1,0 +1,9 @@
+aiohttp
+fastapi
+httpx
+openai
+pydantic
+sse_starlette
+termcolor
+uvicorn
+websockets
