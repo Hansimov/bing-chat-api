@@ -1,14 +1,12 @@
 import uvicorn
-
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
+from sse_starlette.sse import EventSourceResponse
 from conversations import (
     ConversationConnector,
     ConversationCreator,
     ConversationSession,
 )
-from networks import OpenaiStreamOutputer
-from sse_starlette.sse import EventSourceResponse
 
 
 class ChatAPIApp:
