@@ -61,7 +61,7 @@ class ConversationConnector:
         self.wss = await self.aiohttp_session.ws_connect(
             self.ws_url,
             headers=headers_constructor.request_headers,
-            proxy=enver.envs.get("http_proxy") or None,
+            proxy=enver.proxy,
         )
         await self.init_handshake()
 

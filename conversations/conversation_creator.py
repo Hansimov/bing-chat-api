@@ -29,7 +29,7 @@ class ConversationCreator:
         self.response = httpx.get(
             self.conversation_create_url,
             headers=self.request_headers,
-            proxies=enver.envs.get("http_proxy") or None,
+            proxies=enver.proxy,
             cookies=self.httpx_cookies,
         )
         try:
