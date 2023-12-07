@@ -11,8 +11,6 @@ from networks import (
 from utils.logger import logger
 from utils.enver import enver
 
-enver.set_envs(proxies=True)
-
 
 class ConversationConnector:
     """
@@ -59,10 +57,11 @@ class ConversationConnector:
         )
         self.aiohttp_session = aiohttp.ClientSession(cookies=self.cookies)
         headers_constructor = ConversationRequestHeadersConstructor()
+        enver.set_envs(proxies=True)
         self.wss = await self.aiohttp_session.ws_connect(
             self.ws_url,
             headers=headers_constructor.request_headers,
-            proxy=enver.envs["http_proxy"],
+            proxy=enver.envs.get("http_proxy") or None,
         )
         await self.init_handshake()
 

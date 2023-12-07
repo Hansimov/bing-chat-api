@@ -3,8 +3,6 @@ import json
 from pprint import pprint
 from utils.enver import enver
 
-enver.set_envs(proxies=True)
-
 
 class ConversationCreator:
     conversation_create_url = "https://www.bing.com/turing/conversation/create"
@@ -27,10 +25,11 @@ class ConversationCreator:
     def create(self):
         self.construct_cookies()
         self.construct_headers()
+        enver.set_envs(proxies=True)
         self.response = httpx.get(
             self.conversation_create_url,
             headers=self.request_headers,
-            proxies=enver.envs["http_proxy"],
+            proxies=enver.envs.get("http_proxy") or None,
             cookies=self.httpx_cookies,
         )
         self.response_content = json.loads(self.response.content.decode("utf-8"))
