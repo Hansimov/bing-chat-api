@@ -14,6 +14,7 @@ class ChatAPIApp:
         self.app = FastAPI(
             docs_url="/",
             title="Bing Chat API",
+            swagger_ui_parameters={"defaultModelsExpandDepth": -1},
             version="1.0",
         )
         self.setup_routes()
