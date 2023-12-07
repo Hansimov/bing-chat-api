@@ -32,7 +32,13 @@ class ConversationCreator:
             proxies=enver.envs.get("http_proxy") or None,
             cookies=self.httpx_cookies,
         )
-        self.response_content = json.loads(self.response.content.decode("utf-8"))
+        try:
+            self.response_content = json.loads(self.response.content.decode("utf-8"))
+        except:
+            print(self.response.content)
+            raise Exception(
+                f"x Failed to create conversation: {self.response.status_code}"
+            )
         self.response_headers = dict(self.response.headers)
         pprint(self.response_content)
 
