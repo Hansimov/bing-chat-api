@@ -97,12 +97,11 @@ class ChatAPIApp:
             conversation_id=item.conversation_id,
             invocation_id=item.invocation_id,
         )
-        session = ConversationSession(
-            conversation_style=item.model,
-            connector=connector,
+
+        return EventSourceResponse(
+            connector.stream_chat(prompt=item.prompt, yield_output=True),
+            media_type="text/event-stream",
         )
-        with session:
-            session.chat(prompt=item.prompt)
 
     class ChatCompletionsPostItem(BaseModel):
         model: str = Field(
