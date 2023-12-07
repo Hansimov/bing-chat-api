@@ -2,6 +2,7 @@ import httpx
 import json
 from pprint import pprint
 from utils.enver import enver
+from networks import ConversationCreateHeadersConstructor
 
 
 class ConversationCreator:
@@ -18,9 +19,7 @@ class ConversationCreator:
     def construct_headers(self):
         # New Bing 封锁原理探讨 #78
         # https://github.com/weaigc/bingo/issues/78
-        self.request_headers = {
-            "X-Forwarded-For": "65.49.22.66",
-        }
+        self.request_headers = ConversationCreateHeadersConstructor().request_headers
 
     def create(self):
         self.construct_cookies()
