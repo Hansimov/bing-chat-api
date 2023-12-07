@@ -1,3 +1,12 @@
+---
+title: Bing Chat API
+emoji: 🧬
+colorFrom: gray
+colorTo: gray
+sdk: docker
+app_port: 22222
+---
+
 ## Bing-Chat-API
 
 A successor to [EdgeGPT](https://github.com/acheong08/EdgeGPT) by [acheong08](https://github.com/acheong08).
