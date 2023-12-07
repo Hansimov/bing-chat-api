@@ -1,8 +1,9 @@
 import httpx
 import json
 from pprint import pprint
+from utils.enver import enver
 
-http_proxy = "http://localhost:11111"  # Replace with yours
+enver.set_envs(proxies=True)
 
 
 class ConversationCreator:
@@ -23,13 +24,13 @@ class ConversationCreator:
             "X-Forwarded-For": "65.49.22.66",
         }
 
-    def create(self, proxy: str = None):
+    def create(self):
         self.construct_cookies()
         self.construct_headers()
         self.response = httpx.get(
             self.conversation_create_url,
             headers=self.request_headers,
-            proxies=http_proxy if proxy is None else proxy,
+            proxies=enver.envs["http_proxy"],
             cookies=self.httpx_cookies,
         )
         self.response_content = json.loads(self.response.content.decode("utf-8"))

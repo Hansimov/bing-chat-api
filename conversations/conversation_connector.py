@@ -9,8 +9,9 @@ from networks import (
     OpenaiStreamOutputer,
 )
 from utils.logger import logger
+from utils.enver import enver
 
-http_proxy = "http://localhost:11111"  # Replace with yours
+enver.set_envs(proxies=True)
 
 
 class ConversationConnector:
@@ -61,7 +62,7 @@ class ConversationConnector:
         self.wss = await self.aiohttp_session.ws_connect(
             self.ws_url,
             headers=headers_constructor.request_headers,
-            proxy=http_proxy,
+            proxy=enver.envs["http_proxy"],
         )
         await self.init_handshake()
 
