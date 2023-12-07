@@ -5,9 +5,8 @@ from pathlib import Path
 
 
 class OSEnver:
-    def __init__(self, global_scope=True):
+    def __init__(self):
         self.envs_stack = []
-        self.global_scope = global_scope
         self.envs = os.environ.copy()
 
     def store_envs(self):
@@ -46,9 +45,6 @@ class OSEnver:
                 print(f"Set {proxy_env} to {self.envs[proxy_env]}")
             else:
                 pass
-
-        if self.global_scope:
-            os.environ = self.envs
 
 
 enver = OSEnver()
