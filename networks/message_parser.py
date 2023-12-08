@@ -60,10 +60,10 @@ class MessageParser:
                 elif message_type in ["InternalSearchResult"]:
                     analysis_str = f"[Analyzing search results ...]"
                     logger.note(analysis_str)
-                    if return_output:
-                        return self.outputer.output(
-                            analysis_str, content_type="InternalSearchResult"
-                        )
+                    # if return_output:
+                    #     return self.outputer.output(
+                    #         analysis_str, content_type="InternalSearchResult"
+                    #     )
                 # Message: Loader status, such as "Generating Answers"
                 elif message_type in ["InternalLoaderMessage"]:
                     # logger.note("[Generating answers ...]\n")
