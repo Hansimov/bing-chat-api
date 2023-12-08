@@ -102,7 +102,8 @@ class ConversationConnector:
                             for item in output:
                                 yield item
                         else:
-                            yield output
+                            if output:
+                                yield output
                     else:
                         message_parser.parse(data)
                 # Stream: List of all messages in the whole conversation

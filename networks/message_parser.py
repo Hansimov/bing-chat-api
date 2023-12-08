@@ -85,4 +85,4 @@ class MessageParser:
                         f"Not Supported Message Type: {message_type}"
                     )
 
-        return self.outputer.output(content="", content_type="NotImplemented")
+        return None
