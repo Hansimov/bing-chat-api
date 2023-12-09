@@ -5,7 +5,6 @@ from sse_starlette.sse import EventSourceResponse
 from conversations import (
     ConversationConnector,
     ConversationCreator,
-    ConversationSession,
     MessageComposer,
 )
 
@@ -136,25 +135,26 @@ class ChatAPIApp:
         )
 
     def setup_routes(self):
-        self.app.get(
-            "/models",
-            summary="Get available models",
-        )(self.get_available_models)
+        for prefix in ["", "/v1"]:
+            self.app.get(
+                prefix + "/models",
+                summary="Get available models",
+            )(self.get_available_models)
 
-        self.app.post(
-            "/create",
-            summary="Create a conversation session",
-        )(self.create_conversation_session)
+            self.app.post(
+                prefix + "/create",
+                summary="Create a conversation session",
+            )(self.create_conversation_session)
 
-        self.app.post(
-            "/chat",
-            summary="Chat in conversation session",
-        )(self.chat)
+            self.app.post(
+                prefix + "/chat",
+                summary="Chat in conversation session",
+            )(self.chat)
 
-        self.app.post(
-            "/chat/completions",
-            summary="Chat completions in conversation session",
-        )(self.chat_completions)
+            self.app.post(
+                prefix + "/chat/completions",
+                summary="Chat completions in conversation session",
+            )(self.chat_completions)
 
 
 app = ChatAPIApp().app
