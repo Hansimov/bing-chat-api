@@ -10,7 +10,7 @@ class ChathubRequestPayloadConstructor:
         client_id: str,
         conversation_id: str,
         invocation_id: int = 0,
-        conversation_style: ConversationStyle = "precise",
+        conversation_style: str = ConversationStyle.PRECISE.value,
     ):
         self.prompt = prompt
         self.client_id = client_id

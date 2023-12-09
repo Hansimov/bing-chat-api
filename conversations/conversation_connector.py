@@ -27,17 +27,22 @@ class ConversationConnector:
 
     def __init__(
         self,
-        conversation_style: ConversationStyle = "precise",
+        conversation_style: str = ConversationStyle.PRECISE.value,
         sec_access_token: str = "",
         client_id: str = "",
         conversation_id: str = "",
         invocation_id: int = 0,
         cookies={},
     ):
-        if conversation_style.lower() not in ConversationStyle.__members__:
+        conversation_style_enum_values = [
+            style.value for style in ConversationStyle.__members__.values()
+        ]
+
+        if conversation_style.lower() not in conversation_style_enum_values:
             self.conversation_style = ConversationStyle.PRECISE.value
         else:
             self.conversation_style = conversation_style.lower()
+        print(f"Model: [{self.conversation_style}]")
 
         self.sec_access_token = sec_access_token
         self.client_id = client_id
