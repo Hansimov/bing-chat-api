@@ -42,7 +42,7 @@ class OSEnver:
                     self.envs[proxy_env] = os.getenv("http_proxy")
                 else:
                     continue
-                print(f"Set {proxy_env} to {self.envs.get(proxy_env)}")
+            print(f"Using proxy: [{self.envs.get(proxy_env)}]")
 
         self.proxy = (
             self.envs.get("all_proxy")

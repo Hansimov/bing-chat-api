@@ -35,7 +35,9 @@ class MessageParser:
                             delta_content, content_type="Completions"
                         )
                         if message.get("suggestedResponses"):
-                            suggestion_texts_str = "\nSuggested Questions:\n"
+                            suggestion_texts_str = (
+                                "\n\n---\n\n**Suggested Questions:**\n"
+                            )
                             suggestion_texts_str += "\n".join(
                                 f"- {item}" for item in suggestion_texts
                             )

@@ -7,6 +7,7 @@ from conversations import (
     ConversationCreator,
     MessageComposer,
 )
+from utils.logger import logger
 
 
 class ChatAPIApp:
@@ -128,6 +129,7 @@ class ChatAPIApp:
 
         message_composer = MessageComposer()
         prompt = message_composer.merge(item.messages)
+        logger.mesg(item.messages[-1]["content"])
         system_prompt = message_composer.system_prompt
 
         return EventSourceResponse(
