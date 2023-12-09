@@ -6,20 +6,29 @@ class MessageComposer:
     def __init__(self):
         pass
 
-    def merge(self, messages) -> str:
+    def merge(self, messages, suffix=True) -> str:
         self.messages = messages
         self.merged_str = ""
+        self.system_prompt = ""
         for message in messages:
             role = message["role"]
-            if role.lower() in ["system", "user"]:
+            content = message["content"]
+
+            if role.lower() in ["system"]:
+                self.system_prompt = content
+                continue
+
+            if role.lower() in ["user"]:
                 role_str = "me"
             elif role.lower() in ["assistant", "bot"]:
                 role_str = "you"
             else:
                 role_str = "unknown"
-            content = message["content"]
             self.merged_str += f"`{role_str}`:\n{content}\n\n"
-        self.merged_str += "`you`:\n"
+
+        if suffix:
+            self.merged_str += "`you`:\n"
+
         return self.merged_str
 
     def split(self, merged_str) -> list:

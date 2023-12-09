@@ -128,9 +128,12 @@ class ChatAPIApp:
 
         message_composer = MessageComposer()
         prompt = message_composer.merge(item.messages)
+        system_prompt = message_composer.system_prompt
 
         return EventSourceResponse(
-            connector.stream_chat(prompt=prompt, yield_output=True),
+            connector.stream_chat(
+                prompt=prompt, system_prompt=system_prompt, yield_output=True
+            ),
             media_type="text/event-stream",
         )
 

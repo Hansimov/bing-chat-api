@@ -75,20 +75,23 @@ class ConversationConnector:
         )
         await self.init_handshake()
 
-    async def send_chathub_request(self, prompt):
+    async def send_chathub_request(self, prompt: str, system_prompt: str = None):
         payload_constructor = ChathubRequestPayloadConstructor(
             prompt=prompt,
             conversation_style=self.conversation_style,
             client_id=self.client_id,
             conversation_id=self.conversation_id,
             invocation_id=self.invocation_id,
+            system_prompt=system_prompt,
         )
         self.connect_request_payload = payload_constructor.request_payload
         await self.wss_send(self.connect_request_payload)
 
-    async def stream_chat(self, prompt="", yield_output=False):
+    async def stream_chat(
+        self, prompt: str = "", system_prompt: str = None, yield_output=False
+    ):
         await self.connect()
-        await self.send_chathub_request(prompt)
+        await self.send_chathub_request(prompt=prompt, system_prompt=system_prompt)
         message_parser = MessageParser(outputer=OpenaiStreamOutputer())
         has_output_role_message = False
         if yield_output and not has_output_role_message:

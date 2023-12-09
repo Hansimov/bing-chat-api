@@ -3,14 +3,37 @@ import uuid
 from conversations import ConversationStyle
 
 
+class SystemPromptContextConstructor:
+    # https://github.com/weaigc/bingo/blob/eaebba306d5f68b940e4486ad81897516d0db0f3/src/lib/bots/bing/index.ts#L205-L211
+    # https://github.com/weaigc/bingo/blob/eaebba306d5f68b940e4486ad81897516d0db0f3/src/lib/bots/bing/index.ts#L296
+    def __init__(self, system_prompt: str = None):
+        self.system_prompt = system_prompt
+        self.construct()
+
+    def construct(self):
+        if self.system_prompt:
+            self.system_context = [
+                {
+                    "author": "user",
+                    "description": self.system_prompt,
+                    "contextType": "WebPage",
+                    "messageType": "Context",
+                    "messageId": "discover-web--page-ping-mriduna-----",
+                }
+            ]
+        else:
+            self.system_context = None
+
+
 class ChathubRequestPayloadConstructor:
     def __init__(
         self,
-        prompt,
+        prompt: str,
         client_id: str,
         conversation_id: str,
         invocation_id: int = 0,
         conversation_style: str = ConversationStyle.PRECISE.value,
+        system_prompt: str = None,
     ):
         self.prompt = prompt
         self.client_id = client_id
@@ -18,6 +41,7 @@ class ChathubRequestPayloadConstructor:
         self.invocation_id = invocation_id
         self.conversation_style = conversation_style
         self.message_id = self.generate_random_uuid()
+        self.system_prompt = system_prompt
         self.construct()
 
     def generate_random_uuid(self):
@@ -63,6 +87,11 @@ class ChathubRequestPayloadConstructor:
                 "gencontentv3",
             ],
         }
+
+        self.system_context = SystemPromptContextConstructor(
+            self.system_prompt
+        ).system_context
+
         self.request_payload = {
             "arguments": [
                 {
@@ -116,6 +145,7 @@ class ChathubRequestPayloadConstructor:
                     "plugins": [
                         {"id": "c310c353-b9f0-4d76-ab0d-1dd5e979cf68"},
                     ],
+                    "previousMessages": self.system_context,
                     "traceId": self.generate_random_hex_str(),
                     "conversationHistoryOptionsSets": [
                         "autosave",
