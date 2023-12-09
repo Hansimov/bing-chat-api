@@ -34,6 +34,7 @@ class ChathubRequestPayloadConstructor:
         invocation_id: int = 0,
         conversation_style: str = ConversationStyle.PRECISE.value,
         system_prompt: str = None,
+        enable_search: bool = True,
     ):
         self.prompt = prompt
         self.client_id = client_id
@@ -42,6 +43,7 @@ class ChathubRequestPayloadConstructor:
         self.conversation_style = conversation_style
         self.message_id = self.generate_random_uuid()
         self.system_prompt = system_prompt
+        self.enable_search = enable_search
         self.construct()
 
     def generate_random_uuid(self):
@@ -50,7 +52,7 @@ class ChathubRequestPayloadConstructor:
     def generate_random_hex_str(self, length: int = 32) -> str:
         return "".join(random.choice("0123456789abcdef") for _ in range(length))
 
-    def construct(self):
+    def set_options_sets(self):
         options_sets_body = [
             "nlu_direct_response_filter",
             "deepleo",
@@ -68,7 +70,8 @@ class ChathubRequestPayloadConstructor:
             "rcaltimeans",
             "eredirecturl",
         ]
-        styles_options_sets = {
+
+        options_sets_by_styles = {
             "precise": options_sets_body
             + [
                 "h3precise",
@@ -87,16 +90,30 @@ class ChathubRequestPayloadConstructor:
                 "gencontentv3",
             ],
         }
+        self.options_sets = options_sets_by_styles[self.conversation_style]
 
+    def set_search_options(self):
+        self.plugins = []
+        if self.enable_search:
+            self.plugins.append({"id": "c310c353-b9f0-4d76-ab0d-1dd5e979cf68"})
+        else:
+            self.options_sets.append("nosearchall")
+
+    def set_system_context(self):
         self.system_context = SystemPromptContextConstructor(
             self.system_prompt
         ).system_context
+
+    def construct(self):
+        self.set_options_sets()
+        self.set_search_options()
+        self.set_system_context()
 
         self.request_payload = {
             "arguments": [
                 {
                     "source": "cib",
-                    "optionsSets": styles_options_sets[self.conversation_style],
+                    "optionsSets": self.options_sets,
                     "allowedMessageTypes": [
                         "ActionRequest",
                         "Chat",
@@ -142,9 +159,7 @@ class ChathubRequestPayloadConstructor:
                     ],
                     "verbosity": "verbose",
                     "scenario": "SERP",
-                    "plugins": [
-                        {"id": "c310c353-b9f0-4d76-ab0d-1dd5e979cf68"},
-                    ],
+                    "plugins": self.plugins,
                     "previousMessages": self.system_context,
                     "traceId": self.generate_random_hex_str(),
                     "conversationHistoryOptionsSets": [
