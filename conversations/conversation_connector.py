@@ -8,6 +8,7 @@ from networks import (
     MessageParser,
     OpenaiStreamOutputer,
 )
+from conversations import ConversationStyle
 from utils.logger import logger
 from utils.enver import enver
 
@@ -26,14 +27,18 @@ class ConversationConnector:
 
     def __init__(
         self,
-        conversation_style: str = "precise",
+        conversation_style: ConversationStyle = "precise",
         sec_access_token: str = "",
         client_id: str = "",
         conversation_id: str = "",
         invocation_id: int = 0,
         cookies={},
     ):
-        self.conversation_style = conversation_style
+        if conversation_style.lower() not in ConversationStyle.__members__:
+            self.conversation_style = ConversationStyle.PRECISE.value
+        else:
+            self.conversation_style = conversation_style.lower()
+
         self.sec_access_token = sec_access_token
         self.client_id = client_id
         self.conversation_id = conversation_id

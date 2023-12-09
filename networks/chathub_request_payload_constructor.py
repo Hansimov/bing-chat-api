@@ -1,5 +1,6 @@
 import random
 import uuid
+from conversations import ConversationStyle
 
 
 class ChathubRequestPayloadConstructor:
@@ -9,7 +10,7 @@ class ChathubRequestPayloadConstructor:
         client_id: str,
         conversation_id: str,
         invocation_id: int = 0,
-        conversation_style: str = "precise",
+        conversation_style: ConversationStyle = "precise",
     ):
         self.prompt = prompt
         self.client_id = client_id
