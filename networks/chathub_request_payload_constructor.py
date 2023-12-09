@@ -34,16 +34,21 @@ class ChathubRequestPayloadConstructor:
         invocation_id: int = 0,
         conversation_style: str = ConversationStyle.PRECISE.value,
         system_prompt: str = None,
-        enable_search: bool = True,
     ):
         self.prompt = prompt
         self.client_id = client_id
         self.conversation_id = conversation_id
         self.invocation_id = invocation_id
-        self.conversation_style = conversation_style
+        self.conversation_style = conversation_style.lower()
+
+        if self.conversation_style.endswith("offline"):
+            self.enable_search = False
+            self.conversation_style = self.conversation_style.replace("-offline", "")
+        else:
+            self.enable_search = True
+
         self.message_id = self.generate_random_uuid()
         self.system_prompt = system_prompt
-        self.enable_search = enable_search
         self.construct()
 
     def generate_random_uuid(self):
