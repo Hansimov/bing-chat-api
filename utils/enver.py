@@ -1,4 +1,5 @@
 import json
+import requests
 import os
 
 from pathlib import Path
@@ -42,7 +43,6 @@ class OSEnver:
                     self.envs[proxy_env] = os.getenv("http_proxy")
                 else:
                     continue
-            print(f"Using proxy: [{self.envs.get(proxy_env)}]")
 
         self.proxy = (
             self.envs.get("all_proxy")
@@ -54,6 +54,16 @@ class OSEnver:
             "http": self.proxy,
             "https": self.proxy,
         }
+
+        # https://www.proxynova.com/proxy-server-list/country-us/
+
+        print(f"Using proxy: [{self.proxy}]")
+        # r = requests.get(
+        #     "http://ifconfig.me/ip",
+        #     proxies=self.requests_proxies,
+        #     timeout=10,
+        # )
+        # print(f"[r.status_code] r.text")
 
 
 enver = OSEnver()

@@ -35,8 +35,14 @@ Chat with Bing like what you do with OpenAI API.
 - Support Docker deployment
 
 🔨 In progress:
+- [ ] Use auto proxies to enable create in restricted servers
 - [ ] Enhance performance and reduce session create requests
 - [ ] Authentication with API key
+
+
+## Running Example
+
+![](docs/bing-chat-api-server.png)
 
 ## Run API service
 
