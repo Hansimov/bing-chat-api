@@ -1,5 +1,4 @@
-import httpx
-import json
+import requests
 from pprint import pprint
 from utils.enver import enver
 from networks import ConversationCreateHeadersConstructor
@@ -12,9 +11,7 @@ class ConversationCreator:
         self.cookies = cookies
 
     def construct_cookies(self):
-        self.httpx_cookies = httpx.Cookies()
-        for key, val in self.cookies.items():
-            self.httpx_cookies.set(key, val)
+        pass
 
     def construct_headers(self):
         # New Bing 封锁原理探讨 #78
@@ -25,28 +22,27 @@ class ConversationCreator:
         self.construct_cookies()
         self.construct_headers()
         enver.set_envs(proxies=True)
-        self.response = httpx.get(
+        self.response = requests.get(
             self.conversation_create_url,
             headers=self.request_headers,
-            proxies=enver.proxy,
-            cookies=self.httpx_cookies,
+            proxies=enver.requests_proxies,
         )
         try:
-            self.response_content = json.loads(self.response.content.decode("utf-8"))
+            self.response_data = self.response.json()
         except:
-            print(self.response.content)
+            print(self.response.text)
             raise Exception(
                 f"x Failed to create conversation: {self.response.status_code}"
             )
-        self.response_headers = dict(self.response.headers)
-        pprint(self.response_content)
+        self.response_headers = self.response.headers
+        pprint(self.response_data)
 
         # These info would be used in ConversationConnector
         self.sec_access_token = self.response_headers[
             "x-sydney-encryptedconversationsignature"
         ]
-        self.client_id = self.response_content["clientId"]
-        self.conversation_id = self.response_content["conversationId"]
+        self.client_id = self.response_data["clientId"]
+        self.conversation_id = self.response_data["conversationId"]
 
 
 if __name__ == "__main__":

@@ -50,6 +50,10 @@ class OSEnver:
             or self.envs.get("https_proxy")
             or None
         )
+        self.requests_proxies = {
+            "http": self.proxy,
+            "https": self.proxy,
+        }
 
 
 enver = OSEnver()

@@ -3,6 +3,7 @@ fastapi
 httpx
 openai
 pydantic
+requests
 sse_starlette
 termcolor
 uvicorn
