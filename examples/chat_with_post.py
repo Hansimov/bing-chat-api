@@ -7,7 +7,6 @@ import re
 chat_api = "http://localhost:22222"
 api_key = "sk-xxxxx"
 requests_headers = {}
-
 requests_payload = {
     "model": "precise",
     "messages": [
@@ -17,7 +16,6 @@ requests_payload = {
         }
     ],
     "stream": True,
-    "invocation_id": 1,
 }
 
 with httpx.stream(
