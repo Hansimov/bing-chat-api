@@ -1,6 +1,4 @@
 aiohttp
-cssutils
-DrissionPage
 fastapi
 httpx
 openai

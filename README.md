@@ -35,8 +35,9 @@ Chat with Bing like what you do with OpenAI API.
 - Support Docker deployment
 
 🔨 In progress:
-- [ ] Use auto proxies to enable create in restricted servers
 - [ ] Enhance performance and reduce session create requests
+- [ ] Use auto proxies to enable create in restricted servers
+    - This is moved to another repo, and would release it when it is ready.
 - [ ] Authentication with API key
 
 

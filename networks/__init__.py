@@ -8,4 +8,3 @@ from .conversation_create_headers_constructor import (
 )
 from .message_outputer import OpenaiStreamOutputer
 from .message_parser import MessageParser
-from .proxy_scanner import ProxyScanner
