@@ -9,25 +9,43 @@ class MessageComposer:
     def merge(self, messages, suffix=True) -> str:
         self.messages = messages
         self.merged_str = ""
+        self.merged_str_list = []
         self.system_prompt = ""
-        for message in messages:
-            role = message["role"]
-            content = message["content"]
+        self.system_prompt_list = []
 
-            if role.lower() in ["system"]:
-                self.system_prompt = content
-                continue
+        assistant_messages = [
+            message for message in messages if message["role"] not in ["user", "system"]
+        ]
+        if len(assistant_messages) <= 0:
+            for message in messages:
+                role = message["role"]
+                content = message["content"]
+                if role.lower() in ["system"]:
+                    self.system_prompt += content
+                if role.lower() in ["user"]:
+                    self.merged_str_list.append(content)
+        else:
+            for message in messages:
+                role = message["role"]
+                content = message["content"]
 
-            if role.lower() in ["user"]:
-                role_str = "me"
-            elif role.lower() in ["assistant", "bot"]:
-                role_str = "you"
-            else:
-                role_str = "unknown"
-            self.merged_str += f"`{role_str}`:\n{content}\n\n"
+                if role.lower() in ["system"]:
+                    self.system_prompt_list.append(content)
+                    continue
+                if role.lower() in ["user"]:
+                    role_str = "me"
+                elif role.lower() in ["assistant", "bot"]:
+                    role_str = "you"
+                else:
+                    role_str = "unknown"
+                # self.merged_str += f"`{role_str}`:\n{content}\n\n"
+                self.merged_str_list.append(f"`{role_str}`:\n{content}")
 
-        if suffix:
-            self.merged_str += "`you`:\n"
+            if suffix:
+                self.merged_str_list.append("`you`:")
+
+        self.merged_str = "\n\n".join(self.merged_str_list)
+        self.system_prompt = "\n\n".join(self.system_prompt_list)
 
         return self.merged_str
 
@@ -36,22 +54,32 @@ class MessageComposer:
         self.merged_str = merged_str
         pattern = r"`(?P<role>me|you)`:\n(?P<content>.*)\n+"
         matches = re.finditer(pattern, self.merged_str, re.MULTILINE)
-        for match in matches:
-            role = match.group("role")
-
-            if role == "me":
-                role_str = "user"
-            elif role == "you":
-                role_str = "assistant"
-            else:
-                role_str = "unknown"
-
-            self.messages.append(
+        matches_list = list(matches)
+        if len(matches_list) <= 0:
+            self.messages = [
                 {
-                    "role": role_str,
-                    "content": match.group("content"),
+                    "role": "user",
+                    "content": self.merged_str,
                 }
-            )
+            ]
+        else:
+            for match in matches_list:
+                role = match.group("role")
+
+                if role == "me":
+                    role_str = "user"
+                elif role == "you":
+                    role_str = "assistant"
+                else:
+                    role_str = "unknown"
+
+                self.messages.append(
+                    {
+                        "role": role_str,
+                        "content": match.group("content"),
+                    }
+                )
+
         return self.messages
 
 
