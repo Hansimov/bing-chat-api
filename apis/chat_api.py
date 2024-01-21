@@ -21,32 +21,53 @@ class ChatAPIApp:
         self.setup_routes()
 
     def get_available_models(self):
-        self.available_models = [
-            {
-                "id": "precise",
-                "description": "Bing (Precise): Concise and straightforward.",
-            },
-            {
-                "id": "balanced",
-                "description": "Bing (Balanced): Informative and friendly.",
-            },
-            {
-                "id": "creative",
-                "description": "Bing (Creative): Original and imaginative.",
-            },
-            {
-                "id": "precise-offline",
-                "description": "Bing (Precise): (No Internet) Concise and straightforward.",
-            },
-            {
-                "id": "balanced-offline",
-                "description": "Bing (Balanced): (No Internet) Informative and friendly.",
-            },
-            {
-                "id": "creative-offline",
-                "description": "Bing (Creative): (No Internet) Original and imaginative.",
-            },
-        ]
+        self.available_models = {
+            "object": "list",
+            "data": [
+                {
+                    "id": "precise",
+                    "description": "Bing (Precise): Concise and straightforward.",
+                    "object": "model",
+                    "created": 1700000000,
+                    "owned_by": "bing",
+                },
+                {
+                    "id": "balanced",
+                    "description": "Bing (Balanced): Informative and friendly.",
+                    "object": "model",
+                    "created": 1700000000,
+                    "owned_by": "bing",
+                },
+                {
+                    "id": "creative",
+                    "description": "Bing (Creative): Original and imaginative.",
+                    "object": "model",
+                    "created": 1700000000,
+                    "owned_by": "bing",
+                },
+                {
+                    "id": "precise-offline",
+                    "description": "Bing (Precise): (No Internet) Concise and straightforward.",
+                    "object": "model",
+                    "created": 1700000000,
+                    "owned_by": "bing",
+                },
+                {
+                    "id": "balanced-offline",
+                    "description": "Bing (Balanced): (No Internet) Informative and friendly.",
+                    "object": "model",
+                    "created": 1700000000,
+                    "owned_by": "bing",
+                },
+                {
+                    "id": "creative-offline",
+                    "description": "Bing (Creative): (No Internet) Original and imaginative.",
+                    "object": "model",
+                    "created": 1700000000,
+                    "owned_by": "bing",
+                },
+            ],
+        }
         return self.available_models
 
     class CreateConversationSessionPostItem(BaseModel):
