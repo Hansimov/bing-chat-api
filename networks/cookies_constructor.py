@@ -1,8 +1,10 @@
 import json
 import requests
+import random
+import string
+
 from datetime import datetime
 from pathlib import Path
-
 from utils.logger import logger
 
 
@@ -13,6 +15,10 @@ class CookiesConstructor:
         self.cookies = {}
         self.secrets_path = Path(__file__).parents[1] / "secrets.json"
         self.created_datetime_format = "%Y-%m-%d %H:%M:%S"
+
+    def generate_kiev_rps_sec_auth(self):
+        kiev = "".join(random.choices(string.ascii_uppercase + string.digits, k=32))
+        return kiev
 
     def create_secrets_json(self):
         if not self.secrets_path.exists():
@@ -54,6 +60,7 @@ class CookiesConstructor:
 
         requests_body = {"cookies": ""}
         try:
+            logger.note(f"Requesting Cookies from: {self.bypass_url}")
             res = requests.post(
                 self.bypass_url,
                 json=requests_body,
@@ -61,7 +68,9 @@ class CookiesConstructor:
             )
             data = res.json()
             cookies_str = data["result"]["cookies"]
-            cookies_snapshot = data["result"]["snapshot"]
+            cookies_screenshot = data["result"]["screenshot"]
+            kiev = self.generate_kiev_rps_sec_auth()
+            cookies_str = f"KievRPSSecAuth={kiev}; {cookies_str}"
             logger.note(f"Get Cookies: {cookies_str}")
             if cookies_str:
                 with open(self.secrets_path, "r") as rf:
@@ -71,7 +80,7 @@ class CookiesConstructor:
                     "created_time": datetime.now().strftime(
                         self.created_datetime_format
                     ),
-                    "snapshot": self.bypass_url + cookies_snapshot,
+                    "screenshot": self.bypass_url + cookies_screenshot,
                 }
                 with open(self.secrets_path, "w") as wf:
                     json.dump(secrets, wf)

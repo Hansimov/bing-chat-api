@@ -145,6 +145,7 @@ class ChatAPIApp:
             sec_access_token=creator.sec_access_token,
             client_id=creator.client_id,
             conversation_id=creator.conversation_id,
+            cookies=creator.request_cookies,
             invocation_id=0,
         )
 
