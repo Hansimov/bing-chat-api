@@ -86,46 +86,6 @@ class ChatAPIApp:
             "conversation_id": creator.conversation_id,
         }
 
-    class ChatPostItem(BaseModel):
-        prompt: str = Field(
-            default="Hello, who are you?",
-            description="(str) Prompt",
-        )
-        model: str = Field(
-            default="precise",
-            description="(str) `precise`, `balanced`, `creative`, `precise-offline`, `balanced-offline`, `creative-offline`",
-        )
-        sec_access_token: str = Field(
-            default="",
-            description="(str) Sec Access Token",
-        )
-        client_id: str = Field(
-            default="",
-            description="(str) Client ID",
-        )
-        conversation_id: str = Field(
-            default="",
-            description="(str) Conversation ID",
-        )
-        invocation_id: int = Field(
-            default=0,
-            description="(int) Invocation ID",
-        )
-
-    def chat(self, item: ChatPostItem):
-        connector = ConversationConnector(
-            conversation_style=item.model,
-            sec_access_token=item.sec_access_token,
-            client_id=item.client_id,
-            conversation_id=item.conversation_id,
-            invocation_id=item.invocation_id,
-        )
-
-        return EventSourceResponse(
-            connector.stream_chat(prompt=item.prompt, yield_output=True),
-            media_type="text/event-stream",
-        )
-
     class ChatCompletionsPostItem(BaseModel):
         model: str = Field(
             default="precise",
@@ -163,7 +123,7 @@ class ChatAPIApp:
         )
 
     def setup_routes(self):
-        for prefix in ["", "/v1"]:
+        for prefix in ["", "/v1", "/api", "/api/v1"]:
             self.app.get(
                 prefix + "/models",
                 summary="Get available models",
@@ -173,11 +133,6 @@ class ChatAPIApp:
                 prefix + "/create",
                 summary="Create a conversation session",
             )(self.create_conversation_session)
-
-            self.app.post(
-                prefix + "/chat",
-                summary="Chat in conversation session",
-            )(self.chat)
 
             self.app.post(
                 prefix + "/chat/completions",
