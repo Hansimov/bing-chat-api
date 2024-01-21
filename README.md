@@ -15,6 +15,7 @@ Chat with Bing like what you do with OpenAI API.
 - [EdgeGPT](https://github.com/acheong08/EdgeGPT) by [@acheong08](https://github.com/acheong08)
 - [bingo](https://github.com/weaigc/bingo) by [@weaigc](https://github.com/weaigc)
 - [@ninomae](https://github.com/NINOMAE1995)
+- [@Harry-zklcdc][https://github.com/Harry-zklcdc]
 
 ## Features
 
@@ -36,16 +37,18 @@ Chat with Bing like what you do with OpenAI API.
 
 🔨 In progress:
 - [ ] Enhance performance and reduce session create requests
-- [ ] Use auto proxies to enable create in restricted servers
-    - This is moved to another repo, and would release it when it is ready.
 - [ ] Authentication with API key
 
 
-## Running Example
+## Run API service
+
+### Expected results
+
+After running the API service, you should be able to see the following UI and server logs.
+
+![](docs/bing-chat-api-ui.png)
 
 ![](docs/bing-chat-api-server.png)
-
-## Run API service
 
 ### Run in Command Line
 
@@ -59,7 +62,12 @@ pip install -r requirements.txt
 **Run API:**
 
 ```bash
+# on product mode
 python -m apis.chat_api
+
+# on develop mode
+python -m apis.chat_api -d
+
 ```
 
 ## Run via Docker
