@@ -157,6 +157,7 @@ class ChatAPIApp:
             connector.stream_chat(
                 prompt=prompt, system_prompt=system_prompt, yield_output=True
             ),
+            ping=2000,
             media_type="text/event-stream",
         )
 
