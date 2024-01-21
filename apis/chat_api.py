@@ -1,7 +1,11 @@
 import argparse
+import markdown2
 import sys
 import uvicorn
+from pathlib import Path
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 from conversations import (
@@ -21,6 +25,7 @@ class ChatAPIApp:
             version="1.0",
         )
         self.setup_routes()
+        self.app.mount("/docs", StaticFiles(directory="docs", html=True), name="docs")
 
     def get_available_models(self):
         self.available_models = {
@@ -124,6 +129,15 @@ class ChatAPIApp:
             media_type="text/event-stream",
         )
 
+    def get_readme(self):
+        readme_path = Path(__file__).parents[1] / "README.md"
+        with open(readme_path, "r", encoding="utf-8") as rf:
+            readme_str = rf.read()
+        readme_html = markdown2.markdown(
+            readme_str, extras=["table", "fenced-code-blocks", "highlightjs-lang"]
+        )
+        return readme_html
+
     def setup_routes(self):
         for prefix in ["", "/v1", "/api", "/api/v1"]:
             include_in_schema = True if prefix == "" else False
@@ -144,6 +158,13 @@ class ChatAPIApp:
                 summary="Chat completions in conversation session",
                 include_in_schema=include_in_schema,
             )(self.chat_completions)
+
+        self.app.get(
+            "/readme",
+            summary="README of Bing Chat API",
+            response_class=HTMLResponse,
+            include_in_schema=False,
+        )(self.get_readme)
 
 
 class ArgParser(argparse.ArgumentParser):
