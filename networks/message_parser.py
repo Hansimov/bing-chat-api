@@ -1,3 +1,4 @@
+import json
 from utils.logger import logger
 from networks import OpenaiStreamOutputer
 
@@ -17,7 +18,8 @@ class MessageParser:
                 message_type = message.get("messageType")
                 # Message: Displayed answer
                 if message_type is None:
-                    content = message["adaptiveCards"][0]["body"][0]["text"]
+                    # content = message["adaptiveCards"][0]["body"][0]["text"]
+                    content = message["text"]
                     delta_content = content[self.delta_content_pointer :]
                     logger.line(delta_content, end="")
                     self.delta_content_pointer = len(content)
@@ -35,37 +37,41 @@ class MessageParser:
                             delta_content, content_type="Completions"
                         )
                         if message.get("suggestedResponses"):
-                            suggestion_texts_str = (
-                                "\n\n---\n\n**Suggested Questions:**\n"
-                            )
-                            suggestion_texts_str += "\n".join(
-                                f"- {item}" for item in suggestion_texts
-                            )
                             suggestions_output = self.outputer.output(
-                                suggestion_texts_str,
+                                suggestion_texts,
                                 content_type="SuggestedResponses",
                             )
                             return [completions_output, suggestions_output]
                         else:
                             return completions_output
-
                 # Message: Search Query
                 elif message_type in ["InternalSearchQuery"]:
-                    message_hidden_text = message["hiddenText"]
-                    search_str = f"[Searching: [{message_hidden_text}]]"
-                    logger.note(search_str)
+                    search_query_str = message.get("hiddenText")
                     if return_output:
-                        return self.outputer.output(
-                            search_str, content_type="InternalSearchQuery"
-                        )
+                        # output_str = self.outputer.output(
+                        #     search_query_str, content_type="InternalSearchQuery"
+                        # )
+                        # logger.note(output_str)
+                        # return output_str
+                        return None
                 # Message: Internal Search Results
                 elif message_type in ["InternalSearchResult"]:
-                    analysis_str = f"[Analyzing search results ...]"
-                    logger.note(analysis_str)
-                    # if return_output:
-                    #     return self.outputer.output(
-                    #         analysis_str, content_type="InternalSearchResult"
-                    #     )
+                    if message.get("groundingInfo"):
+                        web_search_results = message.get("groundingInfo").get(
+                            "web_search_results"
+                        )
+                        invocation = message.get("invocation")
+                        if return_output:
+                            search_results_str = self.outputer.output(
+                                {
+                                    "invocation": invocation,
+                                    "web_search_results": web_search_results,
+                                },
+                                content_type="InternalSearchResult",
+                            )
+                            data = json.loads(search_results_str)
+                            logger.note(data["choices"][0]["delta"]["content"])
+                            return search_results_str
                 # Message: Loader status, such as "Generating Answers"
                 elif message_type in ["InternalLoaderMessage"]:
                     # logger.note("[Generating answers ...]\n")
