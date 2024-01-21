@@ -11,11 +11,13 @@ app_port: 22222
 
 Chat with Bing like what you do with OpenAI API.
 
+Project link: https://github.com/Hansimov/bing-chat-api
+
 ## Thanks
 - [EdgeGPT](https://github.com/acheong08/EdgeGPT) by [@acheong08](https://github.com/acheong08)
 - [bingo](https://github.com/weaigc/bingo) by [@weaigc](https://github.com/weaigc)
 - [@ninomae](https://github.com/NINOMAE1995)
-- [@Harry-zklcdc][https://github.com/Harry-zklcdc]
+- [@Harry-zklcdc](https://github.com/Harry-zklcdc)
 
 ## Features
 
@@ -36,7 +38,9 @@ Chat with Bing like what you do with OpenAI API.
 - Support Docker deployment
 
 🔨 In progress:
+
 - [ ] Enhance performance and reduce session create requests
+
 - [ ] Authentication with API key
 
 
@@ -46,7 +50,11 @@ Chat with Bing like what you do with OpenAI API.
 
 After running the API service, you should be able to see the following UI and server logs.
 
+UI of visiting `http://127.0.0.1:22222`:
+
 ![](docs/bing-chat-api-ui.png)
+
+Server logs of calling `/chat/completions`:
 
 ![](docs/bing-chat-api-server.png)
 
@@ -92,7 +100,7 @@ sudo docker run -p 22222:22222 --env http_proxy="http://<server>:<port>" bing-ch
 
 ### Using `openai-python`
 
-See: [examples/chat_with_openai.py](https://github.com/Hansimov/bing-chat-api/blob/main/examples/chat_with_openai.py)
+See: [`examples/chat_with_openai.py`](https://github.com/Hansimov/bing-chat-api/blob/main/examples/chat_with_openai.py)
 
 ```py
 from openai import OpenAI
@@ -123,7 +131,7 @@ for chunk in response:
 
 ### Using post requests
 
-See: [examples/chat_with_post.py](https://github.com/Hansimov/bing-chat-api/blob/main/examples/chat_with_post.py)
+See: [`examples/chat_with_post.py`](https://github.com/Hansimov/bing-chat-api/blob/main/examples/chat_with_post.py)
 
 ```py
 import ast
