@@ -1,17 +1,22 @@
 import requests
 from pprint import pprint
+from utils.logger import logger
 from utils.enver import enver
 from networks import ConversationCreateHeadersConstructor
+from networks import CookiesConstructor
 
 
 class ConversationCreator:
     conversation_create_url = "https://www.bing.com/turing/conversation/create"
 
     def __init__(self, cookies: dict = {}):
-        self.cookies = cookies
+        self.request_cookies = cookies
 
     def construct_cookies(self):
-        pass
+        cookies_constructor = CookiesConstructor()
+        if not self.request_cookies:
+            cookies_constructor.construct()
+            self.request_cookies = cookies_constructor.cookies
 
     def construct_headers(self):
         # New Bing 封锁原理探讨 #78
@@ -26,6 +31,7 @@ class ConversationCreator:
             self.conversation_create_url,
             headers=self.request_headers,
             proxies=enver.requests_proxies,
+            cookies=self.request_cookies,
         )
         try:
             self.response_data = self.response.json()
