@@ -1,3 +1,5 @@
+import argparse
+import sys
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
@@ -124,23 +126,64 @@ class ChatAPIApp:
 
     def setup_routes(self):
         for prefix in ["", "/v1", "/api", "/api/v1"]:
+            include_in_schema = True if prefix == "" else False
             self.app.get(
                 prefix + "/models",
                 summary="Get available models",
+                include_in_schema=include_in_schema,
             )(self.get_available_models)
 
             self.app.post(
                 prefix + "/create",
                 summary="Create a conversation session",
+                include_in_schema=include_in_schema,
             )(self.create_conversation_session)
 
             self.app.post(
                 prefix + "/chat/completions",
                 summary="Chat completions in conversation session",
+                include_in_schema=include_in_schema,
             )(self.chat_completions)
+
+
+class ArgParser(argparse.ArgumentParser):
+    def __init__(self, *args, **kwargs):
+        super(ArgParser, self).__init__(*args, **kwargs)
+
+        self.add_argument(
+            "-s",
+            "--server",
+            type=str,
+            default="0.0.0.0",
+            help="Server IP for Bing Chat API",
+        )
+        self.add_argument(
+            "-p",
+            "--port",
+            type=int,
+            default=22222,
+            help="Server Port for Bing Chat API",
+        )
+
+        self.add_argument(
+            "-d",
+            "--dev",
+            default=False,
+            action="store_true",
+            help="Run in dev mode",
+        )
+
+        self.args = self.parse_args(sys.argv[1:])
 
 
 app = ChatAPIApp().app
 
 if __name__ == "__main__":
-    uvicorn.run("__main__:app", host="0.0.0.0", port=22222, reload=True)
+    args = ArgParser().args
+    if args.dev:
+        uvicorn.run("__main__:app", host=args.server, port=args.port, reload=True)
+    else:
+        uvicorn.run("__main__:app", host=args.server, port=args.port, reload=False)
+
+    # python -m apis.chat_api      # [Docker] on product mode
+    # python -m apis.chat_api -d   # [Dev]    on develop mode
