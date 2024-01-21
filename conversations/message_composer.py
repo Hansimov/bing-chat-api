@@ -38,7 +38,6 @@ class MessageComposer:
                     role_str = "you"
                 else:
                     role_str = "unknown"
-                # self.merged_str += f"`{role_str}`:\n{content}\n\n"
                 self.merged_str_list.append(f"`{role_str}`:\n{content}")
 
             if suffix:
